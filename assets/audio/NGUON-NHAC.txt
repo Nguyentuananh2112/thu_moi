@@ -3,7 +3,7 @@ Nhạc nền
 
 1) cho-chut.mp3
    Bài "chờ chút..." của TINH HÀ "SAY HI" feat. CONGB, do bạn chọn.
-   Đã cắt sẵn từ giây 0:37 của bài gốc, làm nhỏ dần vào/ra ở hai đầu cho êm,
+   Đã cắt sẵn từ giây 0:37 đến 3:33 của bài gốc, làm nhỏ dần vào/ra ở hai đầu cho êm,
    và chỉnh độ to cho vừa làm nhạc nền (iPhone không cho trang tự chỉnh độ to).
    File gốc "chờ chút.mp3" không được trang dùng tới: có thể xoá trước khi đưa lên mạng
    cho nhẹ (9 MB), hoặc cứ để đó cũng không sao.
