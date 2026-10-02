@@ -113,8 +113,8 @@ window.INVITE_CONFIG = {
 
     /* Trang lời chào, ngay sau bìa (dòng tiêu đề sẽ được gõ từng chữ) */
     greeting: {
-      title: 'Gửi {to},',
-      lead: 'Hôm nay {from} có một chuyện quan trọng lắm muốn kể, mà phải kể cho {to} nghe đầu tiên cơ. Lật tiếp đi nha!'
+      title: 'Gửi {to} Thúy Nga,',
+      lead: 'Hôm nay Anh có một chuyện quan trọng lắm muốn kể, mà phải kể cho em nghe đầu tiên cơ. Lật tiếp đi nha!'
     },
 
     /* Trang lá thư "Có điều này muốn nói". Mỗi dòng trong ngoặc vuông là một đoạn văn:
@@ -122,15 +122,15 @@ window.INVITE_CONFIG = {
     letter: {
       title: 'Có điều này muốn nói',
       paragraphs: [
-        'Mấy năm đi học, có hôm mệt muốn bỏ cuộc luôn á. Những lúc đó chỉ cần nghĩ tới {to} là {from} lại có thêm sức để cố thêm chút nữa.',
-        'Giờ {from} sắp tốt nghiệp rồi nè. Ngày quan trọng như vậy, người đứng cạnh nhất định phải là {to} mới chịu cơ!'
+        'Mấy năm đi học, Anh cứ lủi thủi một mình, có hôm mệt vch. Rồi đầu năm nay có cơ hội nói chuyện mí em, tới tháng 6 thì mình thành một đôi. Thời gian trôi nhanh quá anh còn không nhận ra cơ.',
+        'Giờ Anh sắp tốt nghiệp rồi nè. Đợi mãiii 1 năm sau mí có ngày quan trọng như vậy, Nếu lễ tốt nghiệp của anh người đứng cạnh là em thì con gì bằng!'
       ]
     },
 
     /* Trang thông tin buổi lễ (ngày, giờ, địa điểm lấy từ mục event ở trên) */
     details: {
       title: 'Lễ tốt nghiệp',
-      note: 'Đến sớm xíu nha, {from} muốn thấy {to} đầu tiên!'
+      note: 'Đến sớm xíu nha, Anh muốn thấy Emmm đầu tiên!'
     },
 
     /* Trang ảnh. Muốn dùng ảnh của bạn: chép file ảnh vào thư mục assets, rồi ghi đúng
@@ -143,14 +143,14 @@ window.INVITE_CONFIG = {
       title: 'Khoảnh khắc nhỏ',
       src: 'assets/photo.svg',
       alt: 'Ảnh kỷ niệm',
-      caption: 'Hai đứa ở bờ hồ',
-      text: 'Lần nào đi dạo bờ hồ cũng muốn đi thêm một vòng nữa, vì có {to} đi cạnh.'
+      caption: 'Hai đứa đi ptb nee',
+      text: 'Rấc cuteee <3'
     },
 
     /* Trang đếm ngược tới ngày lễ */
     countdown: {
       title: 'Đếm ngược nào!',
-      text: 'Mỗi ngày trôi qua là gần thêm một chút tới hôm {from} mặc áo cử nhân, đứng chờ {to} tới.',
+      text: 'Mong ngóng tới hôm {from} mặc áo cử nhân, đứng chờ Thúy Nga tới.',
       done: 'Đến ngày rồi nè!'
     },
 
@@ -160,8 +160,8 @@ window.INVITE_CONFIG = {
        và đổi sang câu kế tiếp trong "noReplies". Hết câu thì nút biến mất. */
     rsvp: {
       question: 'Đến chung vui nhé?',
-      text: 'Có {to} ở đó thì ngày vui mới trọn vẹn. Không tới là {from} dỗi thật đó nha!',
-      button: 'Mình sẽ đến!',
+      text: 'Có {to} ở đó thì ngày vui mới trọn vẹn được',
+      button: 'Em sẽ đến!',
       after: 'Yay! Hẹn gặp nhé!',
       again: 'Ăn mừng lần nữa',
       no: 'Để nghĩ đã…',
@@ -176,7 +176,7 @@ window.INVITE_CONFIG = {
     /* Bìa sau */
     back: {
       title: 'Hẹn gặp nhé!',
-      text: 'Cảm ơn {to} vì đã luôn ở bên. Lễ xong mình ra bờ hồ ăn mừng nha!',
+      text: 'Cảm ơn {to} vì đã luôn ở bên. Lễ xong mình đi ăn gà rán típ nhen!',
       sign: '{from}'
     }
   },
@@ -335,10 +335,10 @@ window.INVITE_CONFIG = {
     /* Lời nhắn mặt sau cho những tấm ảnh không ghi "back" (và cho tấm ảnh ở pages.photo
        khi danh sách photos để trống). Người nhận chạm "Chạm để lật ảnh" là đọc được dòng này,
        nên hãy viết lại bằng lời của bạn. */
-    defaultBack: 'Nhìn lại tấm này là thấy thương ghê',
+    defaultBack: 'Nhìn lại tấm này là thấy cute ha',
 
     /* Chữ ký nho nhỏ dưới lời nhắn ở mặt sau. Để '' là không ký. */
-    sign: 'Thương, {from}',
+    sign: 'Thươnggggg',
 
     /* Tấm cuối: khung trống chờ ảnh chụp chung hôm lễ. Để '' là bỏ tấm này. */
     reserved: 'Để dành cho hôm đó',
@@ -371,8 +371,8 @@ window.INVITE_CONFIG = {
     title: 'Gửi {to}, đúng ngày hôm nay', // tiêu đề lá thư ({to} = tên người nhận)
     paragraphs: [               // lời thư: một đến ba đoạn ngắn, mỗi đoạn để trong dấu nháy và cách nhau bằng dấu phẩy. Thư dài hơn màn hình thì tự cuộn được
       // Bản nháp Claude viết: sửa lại cho đúng giọng của bạn nhé (giữ dấu nháy và dấu phẩy).
-      'Hôm nay là ngày {from} chờ lâu lắm rồi. Cảm ơn {to} đã tới, đã ở đây, và đã nắm tay {from} suốt chặng đường vừa qua.',
-      'Tấm bằng này có một nửa là công của {to} đó. Thương {to} nhiều lắm, nhiều hơn mọi chữ trong lá thư này cộng lại.'
+      'Hôm nay là ngày {from} chờ lâu lắm rồi. Cảm ơn Em đã tới, đã ở đây, và đã nắm tay anh suốt chặng đường vừa qua.',
+      'Thương Em nhiều lắm, nhiều hơn mọi chữ trong lá thư này cộng lại.'
     ],
     sign: '{from}'              // chữ ký cuối thư ({from} = tên bạn). Để trống '' thì không có chữ ký
   },
@@ -403,13 +403,13 @@ window.INVITE_CONFIG = {
     // Ngôi sao cuối cùng màu vàng, nên để lý do quan trọng nhất ở cuối.
     // Để danh sách trống [] thì trang hiện một dải giấy "đang gấp dở" thay vì báo lỗi.
     reasons: [
-      'Vì {to} cười lên là cả ngày của {from} sáng bừng',
-      'Vì đi bờ hồ với {to}, vòng nào cũng thấy ngắn',
-      'Vì {to} luôn nhắc {from} ăn uống đúng giờ',
-      'Vì những đêm ôn thi muộn có {to} nhắn tin cổ vũ',
-      'Vì nhõng nhẽo với {to} là vui nhất trên đời',
-      'Vì có chuyện vui là {from} muốn khoe {to} đầu tiên',
-      'Vì có {to}, mọi cố gắng đều có ý nghĩa'
+      'Vì khi nhìn thấy em cười là cả ngày của anh sáng bừng',
+      'Vì em là ngiu của anh',
+      'Vì {to} luôn quan tâm anh hàng ngày',
+      'Vì có em đời thêm màu sắc',
+      'Vì khi ở bên em là anh thấy bình yên',
+      'Vì có chuyện vui là anh muốn khoe {to} đầu tiên',
+      'Vì có em, mọi cố gắng đều có ý nghĩa'
     ],
     // Câu hiện ra khi đã lấy hết sao
     empty: 'Hết sao rồi, nhưng lý do thì còn nhiều lắm',
@@ -461,13 +461,15 @@ window.INVITE_CONFIG = {
     heading: 'BẰNG DANH DỰ',
     // Chữ nhỏ đứng ngay trước tên người nhận
     awardedTo: 'Trao cho',
+    // Tên in trên tấm bằng. Để '' thì dùng tên thân mật ở recipient.name
+    name: 'Thúy Nga',
     // Câu nằm giữa tên người nhận và tên khoá học
     line: 'đã hoàn thành khoá học',
     // Tên khoá học. {from} sẽ được thay bằng tên người gửi; nếu để trống tên người gửi thì tự đổi thành "Đồng hành cùng nhau"
     course: 'Đồng hành cùng {from}',
     // Bảng điểm: từ 1 đến 3 dòng (dòng thứ 4 trở đi bị bỏ qua). Người xem chạm từng dòng để đóng dấu điểm 10.
     // Để danh sách rỗng [] thì con dấu vàng rơi xuống ngay khi mở cuộn giấy
-    subjects: ['Kiên nhẫn nghe than thở', 'Tiếp sức mùa thi', 'Luôn ở bên'],
+    subjects: ['Kiên nhẫn nghe anh lảm nhảm', 'Em là người yêu của anh', 'Luôn ở bên anh'],
     // Lời nhắc hiện ở chân tấm bằng cho tới khi chấm đủ điểm
     stampHint: 'Chạm từng dòng để chấm điểm nhé',
     // Xếp loại hiện ra khi đã đóng đủ dấu
@@ -501,11 +503,11 @@ window.INVITE_CONFIG = {
 
   ticket: {
     heading: 'VÉ MỜI',
-    guest: 'Khách danh dự',
-    seat: 'Chỗ ngồi: Sát bên {from}',
+    guest: 'Vị Khách: Bùi Thúy Nga',
+    seat: 'Chỗ ngồi: Sát bên cạnh Tuấn Anh',
     seatNoName: 'Chỗ ngồi: Hàng ghế đầu',       // dùng khi chưa điền tên người gửi (trống hoặc toàn dấu cách)
     number: 'Số vé: 0001/0001',
-    gate: 'Vào cổng bằng một nụ cười',
+    gate: 'Vào cổng bằng một nụ cười, kèm theo một cái ôm',
     stampPromise: 'ĐÃ NGOÉO TAY',
     stampYes: 'ĐÃ NHẬN LỜI',
     keep: 'Chụp màn hình lại làm kỷ niệm nha',

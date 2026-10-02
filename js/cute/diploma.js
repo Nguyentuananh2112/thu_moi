@@ -241,9 +241,12 @@
     put('grade', conf('grade'));
     put('stampHint', conf('stampHint'), page.querySelector('.diploma__tip'));
 
-    /* Tên người nhận: càng dài chữ càng nhỏ, và được phép xuống dòng */
+    /* Tên người nhận: càng dài chữ càng nhỏ, và được phép xuống dòng.
+       diploma.name (nếu có) thay cho tên thân mật ở recipient.name, chỉ trên tấm bằng */
     var nameEl = part('name');
-    var name = String((ctx.names && ctx.names.to) || '').replace(/\s+/g, ' ').replace(/^ | $/g, '');
+    var own = ctx.get('diploma.name');
+    if (typeof own !== 'string' || !own.trim()) own = (ctx.names && ctx.names.to) || '';
+    var name = String(own).replace(/\s+/g, ' ').replace(/^ | $/g, '');
     nameEl.textContent = name;
     if (!name) nameEl.hidden = true;
     var len = countChars(name);
