@@ -141,7 +141,7 @@ window.INVITE_CONFIG = {
        (cách thu nhỏ xem ở mục photoStack bên dưới). */
     photo: {
       title: 'Khoảnh khắc nhỏ',
-      src: 'assets/photo.svg',
+      src: 'assets/1790954093362_2293971255316901944_4969591623625050394_96e9415dd0389558d0671c31049b4439.jpg',
       alt: 'Ảnh kỷ niệm',
       caption: 'Hai đứa đi ptb nee',
       text: 'Rấc cuteee <3'
