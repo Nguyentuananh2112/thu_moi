@@ -1,0 +1,796 @@
+/* =====================================================================
+   diploma.css - trang "Bằng danh dự" trao cho người nhận thư
+
+   Trạng thái nằm ở class trên .page--diploma (vì trang bị nhân bản khi lật):
+     diploma--open            đã mở cuộn giấy, hiện tấm bằng
+     diploma--s1 / s2 / s3    dòng 1 / 2 / 3 đã được đóng dấu 10
+     diploma--done            đủ dấu: hiện con dấu vàng, xếp loại, chữ ký
+   Class tạm (chỉ để chạy chuyển động một lần, JS tự gỡ):
+     diploma--unrolling, diploma--sealing, diploma-is-thump, diploma-is-wiggle
+
+   Chỉ chuyển động bằng transform và opacity.
+   ===================================================================== */
+
+.page--diploma {
+  --tint: #FFF1C4;
+  --accent: #EFB32E;
+  --accent-soft: #F8DC8A;
+  --accent-ink: #8A6410;
+  --diploma-ink: #D8475F;      /* mực đỏ của con dấu 10 */
+  --diploma-bleed-x: .3em;     /* phần chừa ra quanh tờ giấy để trục cuộn ló ra mà không bị cắt */
+  --diploma-bleed-y: .4em;
+}
+
+/* Cỡ chữ sàn 13px: các dòng chữ nhỏ viết dạng "font-size: Xem; font-size: max(13px, Xem)".
+   Khi chữ dài, ctx.refit() thu nhỏ cỡ chữ của cả trang; nếu chỉ dùng em thì những dòng nhỏ
+   (Trao cho, đã hoàn thành..., tên môn, lời nhắc) tụt dưới 13px trên điện thoại 320px, khó đọc.
+   Có sàn thì chúng đứng yên ở 13px, còn tên, khoá học, khoảng cách thu nhỏ để nhường chỗ.
+   Dòng đầu là dự phòng cho trình duyệt rất cũ chưa hiểu max(). */
+
+/* Thuộc tính hidden phải thắng display:flex/grid của các khối bên dưới */
+.page--diploma [hidden] { display: none !important; }
+
+/* Khối chính: nằm trong dòng chảy của trang để chữ dài quá thì trang tự thu nhỏ chữ (ctx.refit).
+   Hai trạng thái xếp chồng trong cùng một ô lưới: ô cao bằng phần trang còn trống, và nở thêm
+   nếu nội dung của một trong hai trạng thái cần nhiều hơn (lúc đó trang biết để thu nhỏ chữ).
+   Lề âm trên và hai bên cho tấm bằng rộng gần sát khung nét đứt của trang.
+   Lề dưới KHÔNG âm: dải 2.3em cuối trang (phần đệm dưới của trang) là chỗ của số trang và
+   đôi gấu tí hon (tính năng margin-bears), trục cuộn, con dấu và chữ ký không được lấn xuống đó. */
+.diploma {
+  position: relative;
+  flex: 1 0 auto;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: minmax(min-content, 1fr);
+  margin: -.8em -.5em 0;
+}
+
+.diploma__closed,
+.diploma__cert {
+  grid-area: 1 / 1;
+  min-width: 0;
+}
+
+/* Tấm chắn chống chạm đúp: một nút trong suốt phủ kín cả khối (kể cả phần lề âm sát khung trang),
+   chỉ hiện trong lúc giấy đang mở. Cú chạm thứ hai rơi vào đây thì không lật trang, không đóng dấu nhầm. */
+.diploma__shield {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 3;
+  display: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: default;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.page--diploma.diploma--opening .diploma__shield { display: block; }
+
+/* ---------- Trạng thái A: cuộn giấy còn buộc nơ ---------- */
+
+.diploma__closed {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  margin: .8em .5em 0;   /* trả lại phần lề âm của khối chính */
+}
+
+.title.diploma__lead {
+  margin: 0 0 .2em;
+  font-size: 1.34em;
+  line-height: 1.3;
+}
+
+/* Luôn giữ một khoảng tối thiểu để lời dẫn có dài mấy thì nút vẫn đủ lớn mà chạm */
+.diploma__art {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 7.5em;
+}
+
+/* Cả bạn gấu lẫn cuộn giấy là MỘT nút: chạm vào đâu cũng mở bằng, không lật nhầm trang */
+.diploma__scroll {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: min(100%, 16em);
+  transform: translateX(-50%);
+  display: block;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 1em;
+  background: none;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.diploma__scroll:focus-visible,
+.diploma__row:focus-visible .diploma__card {
+  outline: 3px solid var(--rose);
+  outline-offset: 2px;
+}
+
+/* Viền tiêu điểm vẽ quanh tấm thẻ, không phải quanh cả nút (nút gồm cả phần đệm trong suốt) */
+.diploma__row:focus-visible { outline: none; }
+
+.diploma__bob {
+  position: absolute;
+  top: .4em;
+  right: 0;
+  bottom: .2em;
+  left: 0;
+  display: block;
+  animation: diploma-bob 2.8s ease-in-out infinite;
+}
+
+.diploma__bear {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  display: block;
+}
+
+/* Gấu và hình cuộn giấy dùng chung khung toạ độ 200 x 244, đặt chồng khít lên nhau
+   nên cuộn giấy luôn nằm đúng trong tay gấu ở mọi cỡ màn hình */
+.diploma__bear .mascot,
+.diploma__rollart {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  display: block;
+  margin: auto;
+  width: auto;
+  height: 100%;
+  max-width: 100%;
+  max-height: 18.5em;   /* màn hình cao thì gấu to ra cho đỡ trống, màn hình thấp thì tự co theo chỗ */
+  overflow: visible;
+}
+
+.diploma__roll {
+  transform-box: fill-box;
+  transform-origin: 50% 50%;
+}
+
+.diploma__bowg {
+  transform-box: fill-box;
+  transform-origin: 50% 50%;
+}
+
+.diploma__art .spark--a { top: 6%; left: 2%; }
+.diploma__art .spark--b { top: 14%; right: 3%; }
+.diploma__art .spark--d { bottom: 12%; right: 1%; color: var(--accent); }
+
+.diploma__hint {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: .4em;
+  margin: .2em 0 .1em;
+  font-family: var(--font-head);
+  font-weight: 700;
+  font-size: 1em; font-size: max(13px, 1em);
+  line-height: 1.25;
+  color: var(--accent-ink);
+}
+
+.diploma__hand {
+  flex: none;
+  width: 1.7em;
+  height: 1.7em;
+  animation: diploma-tap 1.3s ease-in-out infinite;
+}
+
+/* ---------- Trạng thái B: tấm bằng ---------- */
+
+/* Chưa mở thì tấm bằng vẫn chiếm chỗ (để đo chiều cao) nhưng vô hình, không bấm được */
+.diploma__cert {
+  position: relative;
+  flex: 1 0 auto;
+  display: flex;
+  flex-direction: column;
+  /* Cắt ở đây để lúc giấy đang mở (các lớp bên trong bị dịch đi) trang không tưởng là
+     nội dung tràn ra ngoài rồi thu nhỏ chữ nhầm */
+  overflow: hidden;
+  visibility: hidden;
+}
+
+.page--diploma.diploma--open .diploma__cert { visibility: visible; }
+.page--diploma.diploma--open .diploma__closed { display: none; }
+
+/* Hai lớp cắt lồng nhau. Lúc mở, lớp ngoài trượt xuống còn lớp trong trượt lên đúng bằng
+   ngần ấy, nên "cửa sổ" nhìn thấy giấy nở từ đường giữa ra hai đầu mà chữ không bị méo. */
+.diploma__clip,
+.diploma__clip2 {
+  position: relative;
+  flex: 1 0 auto;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.diploma__clip2 { padding: var(--diploma-bleed-y) var(--diploma-bleed-x); }
+
+.diploma__paper {
+  position: relative;
+  flex: 1 0 auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: .2em;
+  padding: .75em .6em .6em;
+  border-radius: .3em;
+  text-align: center;
+  background: linear-gradient(180deg, #FFF4D2 0%, #FFFCF2 22%, #FFFBEF 72%, #FFF2CC 100%);
+  /* Viền đôi mảnh màu vàng kim */
+  box-shadow:
+    inset 0 0 0 2px var(--accent),
+    inset 0 0 0 4px #FFFBEF,
+    inset 0 0 0 5px var(--accent-soft);
+}
+
+/* Hai mép giấy còn cuộn lại ở trên và dưới */
+.diploma__rod {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: .7em;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #FCEBB5 0%, #F8DC8A 45%, #EFB32E 100%);
+  box-shadow: inset 0 0 0 1px rgba(138, 100, 16, .28);
+  pointer-events: none;
+}
+
+/* Trục nằm sát mép "cửa sổ" để lúc giấy đang mở không hở ra vệt giấy nào phía ngoài trục */
+.diploma__rod--t { top: 0; }
+.diploma__rod--b { bottom: 0; }
+
+/* Sao nhỏ ở bốn góc */
+.diploma__corner {
+  position: absolute;
+  width: .7em;
+  height: .7em;
+  color: var(--accent);
+  pointer-events: none;
+}
+
+.diploma__corner--tl { top: .7em; left: .5em; }
+.diploma__corner--tr { top: .7em; right: .5em; }
+/* Màn hình nhỏ: hai sao dưới sẽ chạm vào con dấu và chữ ký nên chỉ hiện ở màn hình rộng rãi */
+.diploma__corner--bl,
+.diploma__corner--br { display: none; }
+
+/* Phần đầu: tên bằng, người nhận, khoá học */
+
+.diploma__head {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.diploma__heading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: .3em;
+  max-width: 100%;
+  margin: 0;
+  font-family: var(--font-head);
+  font-weight: 800;
+  font-size: .95em; font-size: max(13px, .95em);
+  line-height: 1.2;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--accent-ink);
+}
+
+.diploma__heading span { min-width: 0; overflow-wrap: anywhere; }
+
+.diploma__laurel {
+  flex: none;
+  width: 1.25em;
+  height: 1.25em;
+  color: var(--accent);
+}
+
+.diploma__laurel--r { transform: scaleX(-1); }
+
+.diploma__to,
+.diploma__line {
+  margin: 0;
+  font-family: var(--font-hand);
+  font-size: .87em; font-size: max(13px, .87em);
+  line-height: 1.3;
+  color: var(--cocoa);
+}
+
+.diploma__to { margin-top: .05em; color: var(--muted); }
+
+.diploma__name {
+  max-width: 100%;
+  margin: 0;
+  padding: 0 .15em;
+  font-family: var(--font-script);
+  font-weight: 400;
+  font-size: 1.6em;
+  line-height: 1.25;
+  color: var(--rose);
+  overflow-wrap: anywhere;
+  text-wrap: balance;
+}
+
+/* Tên dài thì chữ nhỏ dần và được xuống dòng, không đẩy vỡ khung */
+.diploma__name--md { font-size: 1.22em; }
+.diploma__name--sm { font-size: 1em; font-size: max(13px, 1em); line-height: 1.3; }
+
+.diploma__line { text-wrap: balance; }
+
+.diploma__course {
+  max-width: 100%;
+  margin: .05em 0 0;
+  font-family: var(--font-head);
+  font-weight: 700;
+  font-size: .98em; font-size: max(13px, .98em);
+  line-height: 1.2;
+  color: var(--accent-ink);
+  overflow-wrap: anywhere;
+  text-wrap: balance;
+}
+
+.diploma__course span {
+  padding: 0 .2em;
+  background-image: linear-gradient(transparent 62%, var(--accent-soft) 62%, var(--accent-soft) 92%, transparent 92%);
+  border-radius: .2em;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+}
+
+/* Hàng trang trí, chỉ hiện ở màn hình đủ cao */
+.diploma__divider {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  gap: .45em;
+  color: var(--accent);
+}
+
+.diploma__divider::before,
+.diploma__divider::after {
+  content: "";
+  width: 3.2em;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--accent-soft);
+}
+
+.diploma__divider svg { width: .9em; height: .9em; }
+.diploma__divider svg:nth-child(2) { width: 1.1em; height: 1.1em; color: var(--pink); }
+
+/* Bảng điểm: mỗi dòng là một nút.
+   Các nút nằm SÁT nhau (không gap, không margin): chạm vào khe giữa hai dòng mà rơi xuống
+   mặt trang thì thư viện sẽ lật trang ngay giữa lúc đang chấm điểm. Khoảng cách nhìn thấy
+   giữa các dòng là phần đệm trên/dưới của nút, còn tấm thẻ trắng là .diploma__card bên trong. */
+
+.diploma__rows {
+  --diploma-row-pad: .12em;    /* nửa khoảng cách giữa hai thẻ */
+  display: flex;
+  flex-direction: column;
+}
+
+.diploma__row {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  min-height: 44px;
+  margin: 0;
+  padding: var(--diploma-row-pad) 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  color: var(--cocoa);
+  text-align: left;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.diploma__card {
+  display: flex;
+  align-items: center;
+  gap: .4em;
+  flex: 1 0 auto;
+  min-height: calc(44px - 2 * var(--diploma-row-pad));
+  padding: .15em .4em .15em .7em;
+  border-radius: .9em;
+  background: #fff;
+  box-shadow: 0 .16em 0 var(--accent-soft), 0 0 0 1px rgba(239, 179, 46, .22);
+  transition: transform .12s ease;
+}
+
+.diploma__row:active .diploma__card { transform: translateY(.1em) scale(.985); }
+
+.diploma__subject {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-family: var(--font-head);
+  font-weight: 700;
+  font-size: .9em; font-size: max(13px, .9em);
+  line-height: 1.18;
+  overflow-wrap: anywhere;
+  text-wrap: balance;
+}
+
+/* Vòng tròn chờ đóng dấu */
+.diploma__ring {
+  position: relative;
+  flex: none;
+  width: 2.3em;
+  height: 2.3em;
+  border-radius: 50%;
+  border: 2px dashed var(--accent);
+  background: #FFF8E1;
+}
+
+.diploma--open .diploma__ring { animation: diploma-pulse 1.9s ease-in-out infinite; }
+.diploma--open .diploma__row--2 .diploma__ring { animation-delay: -.6s; }
+.diploma--open .diploma__row--3 .diploma__ring { animation-delay: -1.2s; }
+
+/* Con dấu 10 mực đỏ, hơi nghiêng như đóng tay */
+.diploma__ten {
+  --diploma-rot: -13deg;
+  position: absolute;
+  top: -3px;
+  right: -3px;
+  bottom: -3px;
+  left: -3px;
+  display: grid;
+  place-items: center;
+  padding-top: .08em;
+  border-radius: 50%;
+  border: 2.5px solid var(--diploma-ink);
+  background: #FFF4F2;
+  color: var(--diploma-ink);
+  font-family: var(--font-head);
+  font-weight: 800;
+  font-size: 1.12em;
+  line-height: 1;
+  letter-spacing: -.02em;
+  transform: rotate(var(--diploma-rot));
+  box-shadow: inset 0 0 0 1.5px #FFF4F2, inset 0 0 0 2.5px rgba(216, 71, 95, .45);
+  opacity: 0;
+  visibility: hidden;
+}
+
+.diploma__row--2 .diploma__ten { --diploma-rot: 9deg; }
+.diploma__row--3 .diploma__ten { --diploma-rot: -6deg; }
+
+.diploma--s1 .diploma__row--1 .diploma__ten,
+.diploma--s2 .diploma__row--2 .diploma__ten,
+.diploma--s3 .diploma__row--3 .diploma__ten {
+  opacity: 1;
+  visibility: visible;
+}
+
+.diploma--s1 .diploma__row--1 .diploma__ring,
+.diploma--s2 .diploma__row--2 .diploma__ring,
+.diploma--s3 .diploma__row--3 .diploma__ring {
+  border-color: transparent;
+  animation: none;
+}
+
+/* Phần chân: con dấu vàng bên trái, xếp loại và chữ ký bên phải */
+
+.diploma__foot {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: .4em;
+  min-height: 3.2em;
+  padding: 0 .1em 0 .3em;
+}
+
+.diploma__seal {
+  flex: none;
+  width: 2.65em;
+  height: 3.2em;
+  transform: rotate(-8deg);
+  opacity: 0;
+  visibility: hidden;
+}
+
+.diploma__seal svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.diploma__result {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  text-align: right;
+}
+
+.diploma__grade {
+  max-width: 100%;
+  font-family: var(--font-head);
+  font-weight: 800;
+  font-size: .95em; font-size: max(13px, .95em);
+  line-height: 1.2;
+  color: var(--accent-ink);
+  overflow-wrap: anywhere;
+  opacity: 0;
+  visibility: hidden;
+}
+
+/* Chữ ký: khung cắt + chữ bên trong trượt ngược nhau để chữ hiện dần từ trái sang như đang viết */
+.diploma__sign {
+  display: block;
+  max-width: 100%;
+  margin: 0 -.2em -.1em 0;
+  padding: 0 .2em .1em .25em;
+  overflow: hidden;
+  opacity: 0;
+  visibility: hidden;
+}
+
+.diploma__signtxt {
+  display: block;
+  font-family: var(--font-script);
+  font-size: 1.2em;
+  line-height: 1.4;
+  color: var(--rose-ink, var(--rose));   /* hồng đậm hơn cho dễ đọc trên giấy */
+  overflow-wrap: anywhere;
+  text-wrap: balance;
+}
+
+.diploma__signtxt--sm { font-size: .98em; font-size: max(13px, .98em); line-height: 1.3; }
+
+.diploma--done .diploma__seal,
+.diploma--done .diploma__grade,
+.diploma--done .diploma__sign {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* Lời nhắc chấm điểm, nằm ngay chỗ sau này hiện con dấu */
+.diploma__tip {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  font-family: var(--font-hand);
+  font-size: .87em; font-size: max(13px, .87em);
+  line-height: 1.35;
+  color: var(--accent-ink);
+}
+
+.diploma__tipin {
+  display: block;
+  text-align: center;
+  text-wrap: balance;
+}
+
+/* Trái tim đi liền với chữ đầu dòng, để câu xuống hai dòng vẫn cân */
+.diploma__tip svg {
+  display: inline-block;
+  width: 1.05em;
+  height: 1.05em;
+  margin-right: .3em;
+  vertical-align: -.16em;
+  color: var(--pink);
+}
+
+.diploma--done .diploma__tip {
+  opacity: 0;
+  visibility: hidden;
+}
+
+/* Người gửi bỏ trống bảng điểm: gom phần đầu, hàng trang trí và phần chân vào giữa tờ giấy */
+.diploma--norows .diploma__paper { justify-content: center; gap: 1.4em; }
+.diploma--norows .diploma__foot { justify-content: center; gap: 1em; }
+.diploma--norows .diploma__result { flex: 0 1 auto; align-items: flex-start; text-align: left; }
+
+/* ---------- Màn hình rộng rãi hơn (hầu hết điện thoại, trừ cỡ 320 x 568) ---------- */
+
+@media (min-width: 350px) and (min-height: 640px) {
+  .diploma__paper { padding: 1.15em .95em .9em; gap: .4em; }
+  .diploma__corner { width: .8em; height: .8em; }
+  .diploma__corner--tl, .diploma__corner--tr { top: .85em; }
+  .diploma__corner--tl, .diploma__corner--bl { left: .65em; }
+  .diploma__corner--tr, .diploma__corner--br { right: .65em; }
+  .diploma__corner--bl, .diploma__corner--br { display: block; bottom: .75em; }
+  .diploma__heading { font-size: 1.08em; font-size: max(13px, 1.08em); }
+  .diploma__to { margin-top: .4em; }
+  .diploma__name { font-size: 1.95em; line-height: 1.3; }
+  .diploma__name--md { font-size: 1.5em; }
+  .diploma__name--sm { font-size: 1.15em; font-size: max(13px, 1.15em); }
+  /* Chữ Pacifico có đuôi chữ g, y rất dài: chừa chỗ để đuôi không chạm dòng bên dưới */
+  .diploma__line { margin-top: .3em; }
+  .diploma__course { margin-top: .2em; font-size: 1.1em; font-size: max(13px, 1.1em); }
+  .diploma__divider { display: flex; }
+  .diploma__rows { --diploma-row-pad: .225em; }
+  .diploma__row { min-height: max(44px, 3.55em); }
+  .diploma__card { min-height: max(calc(44px - 2 * var(--diploma-row-pad)), 3.1em); padding-left: .85em; padding-right: .5em; }
+  .diploma__subject { font-size: .95em; font-size: max(13px, .95em); }
+  .diploma__ring { width: 2.5em; height: 2.5em; }
+  .diploma__foot { min-height: 4.1em; padding: 0 .3em 0 .5em; }
+  .diploma__seal { width: 3.4em; height: 4.1em; }
+  .diploma__grade { font-size: 1em; font-size: max(13px, 1em); }
+  .diploma__signtxt { font-size: 1.35em; }
+  .diploma__signtxt--sm { font-size: 1.05em; font-size: max(13px, 1.05em); }
+}
+
+/* Màn hình cao (khoảng 390 x 800 trở lên) dư chỗ: cho đuôi chữ g, y của tên (Pacifico) thêm khoảng thở
+   để không sát vào dòng "đã hoàn thành..." bên dưới */
+@media (min-width: 350px) and (min-height: 800px) {
+  .diploma__line { margin-top: .6em; }
+}
+
+/* ---------- Gấu nâu cũng được đội mũ cử nhân sau khi nhận bằng ----------
+   base.css giấu mũ của .mascot--choco; bộ chọn này cụ thể hơn nên thắng. */
+
+html.diploma-done .mascot--choco .m-cap { display: block; }
+html.diploma-done .mascot--choco .m-clip { display: none; }
+
+/* =====================================================================
+   Chuyển động
+   ===================================================================== */
+
+@keyframes diploma-bob {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-.4em); }
+}
+
+@keyframes diploma-tap {
+  0%, 100% { transform: translateY(0) rotate(-8deg) scale(1); }
+  45%      { transform: translateY(-.3em) rotate(-8deg) scale(1); }
+  60%      { transform: translateY(-.34em) rotate(-8deg) scale(.88); }
+  75%      { transform: translateY(-.3em) rotate(-8deg) scale(1); }
+}
+
+@keyframes diploma-pulse {
+  0%, 100% { transform: scale(1); }
+  50%      { transform: scale(1.1); }
+}
+
+/* --- Mở cuộn giấy: nơ bật ra, cảnh cũ mờ đi, giấy nở từ giữa --- */
+
+.page--diploma.diploma--unrolling .diploma__closed {
+  display: flex;
+  pointer-events: none;
+  animation: diploma-away .4s ease-in .14s both;
+}
+
+.diploma--unrolling .diploma__bob { animation: none; }
+.diploma--unrolling .diploma__roll { animation: diploma-squish .3s ease-out both; }
+.diploma--unrolling .diploma__bowg { animation: diploma-bow-off .5s cubic-bezier(.3, .7, .4, 1) both; }
+
+.diploma--unrolling .diploma__clip { animation: diploma-clip-a .8s cubic-bezier(.5, 0, .2, 1) .2s both; }
+.diploma--unrolling .diploma__clip2 { animation: diploma-clip-b .8s cubic-bezier(.5, 0, .2, 1) .2s both; }
+.diploma--unrolling .diploma__paper { animation: diploma-clip-c .8s cubic-bezier(.5, 0, .2, 1) .2s both; }
+.diploma--unrolling .diploma__rod { animation: diploma-rod-in .2s ease-out .2s both; }
+
+@keyframes diploma-rod-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes diploma-away {
+  from { opacity: 1; transform: scale(1); }
+  to   { opacity: 0; transform: scale(.9); }
+}
+
+@keyframes diploma-squish {
+  0%   { transform: scale(1, 1); }
+  40%  { transform: scale(1.08, .86); }
+  100% { transform: scale(1, 1); }
+}
+
+@keyframes diploma-bow-off {
+  0%   { transform: translate(0, 0) rotate(0deg) scale(1); opacity: 1; }
+  25%  { transform: translate(0, -6px) rotate(-8deg) scale(1.3); opacity: 1; }
+  100% { transform: translate(46px, -96px) rotate(70deg) scale(.6); opacity: 0; }
+}
+
+/* Lớp ngoài xuống 50%, lớp trong lên 100%, tờ giấy xuống lại 50% (cộng phần chừa mép):
+   tổng dịch chuyển của tờ giấy luôn bằng 0, chỉ có "cửa sổ" là mở dần. */
+@keyframes diploma-clip-a {
+  from { transform: translateY(50%); }
+  to   { transform: translateY(0); }
+}
+
+@keyframes diploma-clip-b {
+  from { transform: translateY(-100%); }
+  to   { transform: translateY(0); }
+}
+
+@keyframes diploma-clip-c {
+  from { transform: translateY(calc(50% + var(--diploma-bleed-y))); }
+  to   { transform: translateY(0); }
+}
+
+/* --- Đóng dấu 10 --- */
+
+/* Class tạm nằm trên nút, nhưng chỉ tấm thẻ bên trong chuyển động (nút đứng yên để vùng chạm không xê dịch) */
+.diploma__row.diploma-is-thump .diploma__card { animation: diploma-thud .32s ease-out; }
+.diploma__row.diploma-is-thump .diploma__ten { animation: diploma-stamp .36s cubic-bezier(.3, 1.2, .5, 1) both; }
+.diploma__row.diploma-is-wiggle .diploma__card { animation: diploma-wiggle .42s ease-in-out; }
+
+@keyframes diploma-stamp {
+  0%   { transform: rotate(-32deg) scale(2.5); opacity: 0; }
+  55%  { transform: rotate(var(--diploma-rot)) scale(.86); opacity: 1; }
+  100% { transform: rotate(var(--diploma-rot)) scale(1); opacity: 1; }
+}
+
+@keyframes diploma-thud {
+  0%   { transform: translateY(0) scale(1); }
+  45%  { transform: translateY(0) scale(1); }
+  62%  { transform: translateY(.14em) scale(.975); }
+  100% { transform: translateY(0) scale(1); }
+}
+
+@keyframes diploma-wiggle {
+  0%, 100% { transform: rotate(0deg); }
+  25%      { transform: rotate(-1.6deg) translateX(-.12em); }
+  50%      { transform: rotate(1.4deg) translateX(.12em); }
+  75%      { transform: rotate(-.8deg) translateX(-.06em); }
+}
+
+/* --- Đủ dấu: con dấu vàng rơi xuống, xếp loại hiện lên, chữ ký được viết ra --- */
+
+.diploma--sealing .diploma__seal { animation: diploma-seal-drop .62s cubic-bezier(.3, 1.1, .5, 1) both; }
+.diploma--sealing .diploma__grade { animation: diploma-rise .4s ease-out .32s both; }
+.diploma--sealing .diploma__sign { animation: diploma-write-a .85s cubic-bezier(.4, .1, .4, 1) .55s both; }
+.diploma--sealing .diploma__signtxt { animation: diploma-write-b .85s cubic-bezier(.4, .1, .4, 1) .55s both; }
+.diploma--sealing .diploma__tip { animation: none; }
+
+@keyframes diploma-seal-drop {
+  0%   { transform: translateY(-3.2em) rotate(-40deg) scale(1.7); opacity: 0; }
+  50%  { transform: translateY(0) rotate(-8deg) scale(.86); opacity: 1; }
+  72%  { transform: translateY(0) rotate(-8deg) scale(1.08); opacity: 1; }
+  100% { transform: translateY(0) rotate(-8deg) scale(1); opacity: 1; }
+}
+
+@keyframes diploma-rise {
+  from { transform: translateY(.5em); opacity: 0; }
+  to   { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes diploma-write-a {
+  from { transform: translateX(-101%); }
+  to   { transform: translateX(0); }
+}
+
+@keyframes diploma-write-b {
+  from { transform: translateX(101%); }
+  to   { transform: translateX(0); }
+}
+
+/* ---------- Giảm chuyển động: base.css đã tắt mọi animation; tắt nốt transition của nút ---------- */
+
+.reduce-motion .diploma__card { transition: none; }

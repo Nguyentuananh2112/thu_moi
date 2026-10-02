@@ -1,0 +1,875 @@
+/* =====================================================================
+   photo-stack.css - chồng ảnh kỷ niệm có mặt sau (js/cute/photo-stack.js)
+
+   Tấm trên cùng giữ đúng dáng tấm polaroid gốc trong css/book.css
+   (cùng kích thước, lề, bóng, băng dính, chữ ghi chú, sticker tim) để
+   bố cục trang ảnh không xê dịch.
+   Chỉ chuyển động bằng transform và opacity.
+   ===================================================================== */
+
+/* ---------- Khung chồng ảnh: chiếm đúng chỗ tấm polaroid cũ ---------- */
+
+.photo-stack {
+  --photo-stack-tilt: -4deg;
+  /* Vùng chạm của nút thò ra ngoài tấm ảnh bao nhiêu (trái, phải, dưới).
+     Hàng ô đếm + nhãn nhắc lấy chính các số này làm giới hạn bề rộng, nên chữ
+     mời chạm không bao giờ nằm ngoài vùng chạm (chạm vào đó là lật trang nhầm). */
+  --photo-stack-hit-l: .75em;
+  --photo-stack-hit-r: .75em;
+  --photo-stack-hit-b: 1.35em;
+
+  position: relative;
+  z-index: 0;                 /* gom các lớp bên trong lại, để ngôi sao trang trí vẫn nằm trên */
+  width: 76%;
+  max-width: 15em;
+}
+
+/* Trang chật (điện thoại nhỏ, lời nhắn dài, có thêm dòng "bên nhau N ngày") thì chồng ảnh
+   tự nhỏ lại theo chiều cao còn trống, thay vì đè lên chữ bên dưới. Ô chứa vốn đã co giãn
+   theo phần còn lại của trang nên khai báo này không làm bố cục trang thay đổi.
+   5.6em = viền trên + viền dưới + chú thích HAI dòng + ô đếm thò xuống, trừ đi phần lề
+   của ô chứa. Tính cho chú thích hai dòng để đổi sang tấm có chú thích dài hơn cũng
+   không bị đè. Máy rộng rãi thì vẫn đúng cỡ tấm polaroid gốc (76%, tối đa 15em).
+   Máy cũ không hiểu thì giữ nguyên cỡ như tấm polaroid gốc. */
+@supports (container-type: size) and (width: min(1cqh, 1em)) {
+  .photo-stack-wrap { container-type: size; }
+
+  .photo-stack {
+    width: min(76%, 15em, max(6em, calc(100cqh - 5.6em)));
+    max-width: none;
+  }
+
+  /* Rất chật (máy 320px lại có thêm dòng "bên nhau"): chú thích chỉ một dòng,
+     nhờ vậy ảnh được to hơn thay vì teo lại thành một mẩu */
+  @container (max-height: 200px) {
+    .photo-stack { width: min(76%, 15em, max(6em, calc(100cqh - 4.25em))); }
+
+    .photo-stack-wrap .photo-stack__cap,
+    .photo-stack-wrap .photo-stack__hint {
+      display: block;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+    }
+
+    /* Câu nhắc lắc quan trọng hơn chú thích: không cắt "…" mà viết thẳng lên lớp phim
+       mờ (hai dòng, nửa dưới ô ảnh), dòng chú thích bên dưới để trống chờ ảnh hiện */
+    .photo-stack-wrap .photo-stack__card[data-fog] .photo-stack__hint {
+      position: absolute;
+      top: .7em;
+      left: .7em;
+      right: .7em;
+      z-index: 1;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      aspect-ratio: 1 / 1;
+      padding: 0 .35em .45em;
+      white-space: normal;
+      text-overflow: clip;
+      font-size: .9em;
+      line-height: 1.3;
+    }
+
+    /* Nhãn "Để dành cho hôm đó" là câu chốt của chồng ảnh, không được cắt "…": viết
+       ngay trong khung nét đứt trống (nửa dưới, trái tim nhích lên nhường chỗ), dòng
+       chú thích bên dưới để trống như lề trắng của tấm polaroid. Tấm ảnh không đổi cỡ. */
+    .photo-stack-wrap .photo-stack__card.is-reserved .photo-stack__cap {
+      position: absolute;
+      top: .7em;
+      left: .7em;
+      right: .7em;
+      z-index: 1;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      aspect-ratio: 1 / 1;
+      padding: 0 .3em .5em;
+      white-space: normal;
+      text-overflow: clip;
+      text-align: center;
+      font-size: .9em;
+      line-height: 1.22;
+    }
+
+    .photo-stack-wrap .photo-stack__card.is-reserved .photo-stack__empty svg { margin-bottom: 38%; }
+
+    /* Dòng chú thích giữ nguyên chiều cao (một dòng chú thích = 1.9em theo cỡ chữ 1.02em),
+       để tấm để dành cao đúng bằng các tấm khác */
+    .photo-stack-wrap .photo-stack__card.is-reserved .photo-stack__label { min-height: calc(1.9em * 1.02); }
+
+    /* Máy không hiểu aspect-ratio: nhãn về lại dòng chú thích một dòng như cũ */
+    @supports not (aspect-ratio: 1 / 1) {
+      .photo-stack-wrap .photo-stack__card.is-reserved .photo-stack__cap {
+        position: static;
+        display: block;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+      }
+      .photo-stack-wrap .photo-stack__card.is-reserved .photo-stack__empty svg { margin-bottom: 0; }
+    }
+  }
+
+  /* Máy không hiểu aspect-ratio: giữ câu nhắc ở dòng chú thích như bình thường */
+  @supports not (aspect-ratio: 1 / 1) {
+    .photo-stack-wrap .photo-stack__card[data-fog] .photo-stack__hint { position: static; }
+  }
+}
+
+/* Mỗi tấm nghiêng một kiểu, tấm đầu nghiêng y như polaroid gốc */
+.photo-stack [data-index="1"] { --photo-stack-tilt: 3deg; }
+.photo-stack [data-index="2"] { --photo-stack-tilt: -2.5deg; }
+.photo-stack [data-index="3"] { --photo-stack-tilt: 4deg; }
+.photo-stack [data-index="4"] { --photo-stack-tilt: -3.5deg; }
+.photo-stack [data-index="5"] { --photo-stack-tilt: 2.5deg; }   /* 5 ảnh + tấm để dành */
+
+/* ---------- Mép các tấm ảnh nằm dưới (chỉ để trang trí) ---------- */
+
+.photo-stack__under {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 1;
+  border-radius: .35em;
+  background: #FFFDF8;
+  box-shadow: 0 .35em .8em -.35em rgba(91, 74, 74, .38), 0 0 0 1px rgba(91, 74, 74, .08);
+  pointer-events: none;
+}
+
+.photo-stack__under--a { transform: translate(.4em, .32em) rotate(2.5deg); }
+.photo-stack__under--b { transform: translate(-.28em, .12em) rotate(-8.5deg); }
+
+/* Chỉ có 1 tấm thì không có gì ở dưới, 2 tấm thì ló một mép */
+.photo-stack[data-count="1"] .photo-stack__under,
+.photo-stack[data-count="2"] .photo-stack__under--b { display: none; }
+
+/* ---------- Tấm trên cùng: nút bấm thật duy nhất ---------- */
+
+.photo-stack__card {
+  position: relative;
+  z-index: 2;
+  display: block;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: .35em;
+  background: none;
+  text-align: center;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-appearance: none;
+  appearance: none;
+  -webkit-perspective: 46em;
+  perspective: 46em;
+  transform: rotate(var(--photo-stack-tilt));
+}
+
+/* Vùng chạm rộng hơn tấm ảnh một chút: chạm trúng băng dính, sticker, ô đếm hay
+   nhãn "Chạm để lật ảnh" cũng tính là chạm vào ảnh, không bị lật trang nhầm.
+   (Thư viện lật trang chỉ chừa nút bấm khi chính nút là đích chạm, nên vùng chạm
+   phải là ::after của nút, không thể để nhãn tự nhận chạm.) */
+.photo-stack__card::after {
+  content: "";
+  position: absolute;
+  top: -.9em;
+  right: calc(-1 * var(--photo-stack-hit-r));
+  bottom: calc(-1 * var(--photo-stack-hit-b));
+  left: calc(-1 * var(--photo-stack-hit-l));
+}
+
+.photo-stack__card:focus-visible {
+  outline: 3px solid var(--rose);
+  outline-offset: 3px;
+}
+
+/* Phần xoay: lật quanh trục dọc như lật một tấm ảnh thật */
+.photo-stack__flip {
+  position: relative;
+  display: block;
+  -webkit-transform-style: preserve-3d;
+  transform-style: preserve-3d;
+  transition: transform .6s cubic-bezier(.45, 0, .55, 1);
+}
+
+.photo-stack__card.is-back .photo-stack__flip { transform: rotateY(180deg); }
+
+.photo-stack__face {
+  display: block;
+  border-radius: .35em;
+  box-shadow: 0 .6em 1.3em -.4em rgba(91, 74, 74, .4), 0 0 0 1px rgba(91, 74, 74, .07);
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  /* Đúng giữa cú lật (tấm ảnh đang quay cạnh về phía mắt) thì đổi mặt nào được thấy.
+     Nhờ vậy nơi nào backface-visibility trục trặc vẫn không lộ mặt bị ngược. */
+  transition: visibility 0s linear .3s;
+}
+
+.photo-stack__face--front {
+  position: relative;
+  padding: .7em .7em .45em;
+  background: #fff;
+  transform: rotateY(0deg);
+}
+
+.photo-stack__face--back {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  visibility: hidden;
+  transform: rotateY(180deg);
+}
+
+.photo-stack__card.is-back .photo-stack__face--front { visibility: hidden; }
+.photo-stack__card.is-back .photo-stack__face--back { visibility: visible; }
+
+/* Đổi sang tấm kế: về mặt trước ngay, không diễn cú lật ngược */
+.photo-stack__card.is-snap .photo-stack__flip,
+.photo-stack__card.is-snap .photo-stack__face { transition: none; }
+
+/* ---------- Mặt trước ---------- */
+
+.photo-stack__pic {
+  position: relative;
+  display: block;
+  padding-top: 100%;          /* ô vuông, không phụ thuộc aspect-ratio */
+  overflow: hidden;
+  border-radius: .2em;
+  background: var(--tint);
+}
+
+.photo-stack__img {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Tấm để dành: khung nét đứt trống, giữa có trái tim nhỏ */
+.photo-stack__empty {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  display: none;
+  place-items: center;
+  border: 2px dashed var(--accent-soft);
+  border-radius: .7em;
+  background: linear-gradient(160deg, #F2F8FF 0%, #FFF3F6 100%);
+}
+
+.photo-stack__empty svg {
+  display: block;
+  width: 26%;
+  height: 26%;
+  color: var(--pink);
+  opacity: .85;
+  animation: photo-stack-beat 1.5s ease-in-out infinite;
+}
+
+.photo-stack__card.is-reserved .photo-stack__pic { background: none; }
+.photo-stack__card.is-reserved .photo-stack__img { display: none; }
+.photo-stack__card.is-reserved .photo-stack__empty { display: grid; }
+
+/* Lớp phim mờ sữa của tấm ảnh chưa hiện hình */
+.photo-stack__film {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(160deg, #F7F1EA 0%, #E6DCD6 100%);
+  opacity: 0;
+  transition: opacity .7s ease;
+}
+
+.photo-stack__film svg {
+  display: block;
+  width: 30%;
+  height: 30%;
+  color: rgba(232, 99, 140, .3);
+}
+
+.photo-stack__card[data-fog="0"] .photo-stack__film { opacity: 1; }
+.photo-stack__card[data-fog="1"] .photo-stack__film { opacity: .66; }
+.photo-stack__card[data-fog="2"] .photo-stack__film { opacity: .33; }
+
+.photo-stack__card[data-fog="0"] .photo-stack__film svg { animation: photo-stack-beat 1.5s ease-in-out infinite; }
+
+/* Dòng ghi chú và dòng nhắc "lắc ảnh" nằm chồng lên nhau, nên tấm ảnh không đổi chiều cao */
+.photo-stack__label { display: grid; }
+
+.photo-stack__cap,
+.photo-stack__hint {
+  grid-area: 1 / 1;
+  display: block;
+  min-width: 0;
+  min-height: 1.9em;
+  padding: .4em 0 .15em;
+  font-family: var(--font-script);
+  font-size: 1.02em;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+/* Tối đa hai dòng, để chiều cao tấm ảnh có giới hạn (cỡ chồng ảnh được tính theo đó).
+   Bọc trong @supports để máy không hiểu line-clamp vẫn hiện đủ chữ. */
+@supports (-webkit-line-clamp: 2) {
+  .photo-stack__cap,
+  .photo-stack__hint {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    overflow: hidden;
+  }
+}
+
+.photo-stack__cap {
+  color: var(--cocoa);
+  transition: opacity .5s ease .25s;
+}
+
+.photo-stack__hint {
+  color: var(--accent-ink);
+  opacity: 0;
+  transition: opacity .3s ease;
+}
+
+.photo-stack__card[data-fog] .photo-stack__cap { opacity: 0; transition: none; }
+.photo-stack__card[data-fog] .photo-stack__hint { opacity: 1; }
+
+.photo-stack__hint.is-pop { animation: photo-stack-pop .4s cubic-bezier(.34, 1.56, .64, 1); }
+
+.photo-stack__sticker {
+  position: absolute;
+  right: -.65em;
+  bottom: 2.3em;
+  width: 1.9em;
+  height: 1.9em;
+  color: var(--rose);
+  transform: rotate(14deg);
+  transition: transform .35s cubic-bezier(.34, 1.56, .64, 1) .3s, opacity .2s ease .3s;
+}
+
+/* Tấm để dành dán mũ cử nhân thay cho trái tim */
+.photo-stack__sticker--cap {
+  display: none;
+  right: -.8em;
+  width: 2.5em;
+  height: 2.1em;
+}
+
+.photo-stack__card.is-reserved .photo-stack__sticker--heart { display: none; }
+.photo-stack__card.is-reserved .photo-stack__sticker--cap { display: block; }
+
+/* Ảnh hiện hình xong thì sticker tim mới "dán" vào */
+.photo-stack__card[data-fog] .photo-stack__sticker {
+  opacity: 0;
+  transform: rotate(14deg) scale(1.9);
+  transition: none;
+}
+
+/* ---------- Mặt sau: giấy trắng ngà có dòng kẻ ---------- */
+
+.photo-stack__paper {
+  display: flex;
+  flex-direction: column;
+  padding: .85em .85em .5em;
+  background: #FFFBF2;
+  text-align: left;
+}
+
+.photo-stack__lines {
+  flex: 1 1 auto;
+  display: block;
+  min-height: 0;
+  overflow: hidden;
+  font-family: var(--font-hand);
+  font-size: .88em;
+  line-height: 1.58;
+  /* Mỗi dòng chữ có một nét kẻ mờ bên dưới, như giấy vở */
+  background-image: linear-gradient(to bottom, transparent calc(100% - 1px), rgba(111, 174, 234, .3) calc(100% - 1px));
+  background-size: 100% 1.58em;
+}
+
+.photo-stack__note {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 6;
+  overflow: hidden;
+  color: var(--cocoa);
+  overflow-wrap: anywhere;
+}
+
+/* Lời nhắn dài hơn số dòng giấy có (máy nhỏ): chữ nhỏ lại một chút (không dưới 13px)
+   và dòng kẻ sát hơn, để đọc được trọn câu thay vì bị cắt "…" (fitNote bật class này) */
+.photo-stack__paper.is-tight .photo-stack__lines {
+  font-size: .8em;
+  font-size: max(13px, .8em);
+  line-height: 1.36;
+  background-size: 100% 1.36em;
+}
+
+/* Lề giấy hẹp lại một chút để mỗi dòng chứa thêm được vài chữ (máy 320px) */
+.photo-stack__paper.is-tight { padding: .75em .55em .45em; }
+
+/* Chữ ký ngay dòng kẻ dưới lời nhắn, canh phải như ký thật (chỉ khi còn chỗ).
+   Họ tên đầy đủ 4-5 chữ thì xuống dòng (tối đa ba dòng, fitNote chỉnh theo số dòng
+   còn trống) thay vì bị cắt "Thương, Nguyễn Hoàng B…" ngay trên mấy dòng giấy trống. */
+.photo-stack__sign {
+  display: none;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  padding-right: .2em;
+  overflow: hidden;
+  color: var(--rose);
+  text-align: right;
+  overflow-wrap: anywhere;
+  text-wrap: balance;          /* "Thương, Nguyễn / Hoàng Bảo Ngọc" thay vì để một chữ lẻ loi */
+}
+
+.photo-stack__paper.is-signed .photo-stack__sign { display: -webkit-box; }
+
+/* Con dấu tim ở góc giấy còn trống (lời nhắn ngắn) */
+.photo-stack__stamp {
+  position: absolute;
+  right: 12%;
+  bottom: 2.15em;
+  display: none;
+  width: 2.9em;
+  height: 2.9em;
+  color: var(--accent-soft);
+  transform: rotate(-14deg);
+  pointer-events: none;
+}
+
+.photo-stack__stamp-heart { color: var(--pink); opacity: .8; }
+
+.photo-stack__paper.is-roomy .photo-stack__stamp { display: block; }
+
+.photo-stack__foot {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .5em;
+  min-height: 1.45em;
+  padding-top: .15em;
+}
+
+.photo-stack__mark {
+  flex: none;
+  display: block;
+  width: .95em;
+  height: .95em;
+  color: var(--pink);
+  transform: rotate(-10deg);
+}
+
+.photo-stack__date {
+  min-width: 0;
+  font-family: var(--font-head);
+  font-weight: 600;
+  font-size: .87em;
+  line-height: 1.3;
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ---------- Lớp nằm trên cùng: băng dính và ô đếm ----------
+   Nằm ngoài nút để khi ảnh lật hay bị gạt đi, băng dính vẫn ở yên phía trên.
+   Nó nghiêng và lắc y hệt tấm ảnh (cùng khung, cùng keyframes). */
+
+.photo-stack__top {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 5;
+  pointer-events: none;
+  transform: rotate(var(--photo-stack-tilt));
+}
+
+.photo-stack__tape {
+  position: absolute;
+  top: -.75em;
+  left: 50%;
+  width: 5.5em;
+  height: 1.55em;
+  border-radius: .15em;
+  transform: translateX(-50%) rotate(3deg);
+  background: repeating-linear-gradient(45deg, rgba(246, 196, 83, .9) 0 .4em, rgba(255, 233, 168, .95) .4em .8em);
+}
+
+/* Hàng dưới chân tấm ảnh: ô đếm, và (chỉ lần đầu) nhãn "Chạm để lật ảnh".
+   Ô đếm thò xuống dưới mép ảnh ít thôi (.95em, phần còn lại đè lên viền trắng
+   của tấm ảnh) để không chạm vào đoạn chữ bên dưới.
+   Nhãn nằm DƯỚI ô đếm khi ô chứa đủ cao (gần như mọi điện thoại, xem @container
+   phía dưới); máy cũ không hiểu container query thì nhãn nằm cạnh ô đếm.
+   Bề rộng tối đa của hàng = tấm ảnh + phần vùng chạm thò ra hai bên, trừ một chút:
+   chữ mời chạm luôn nằm trên nút. */
+.photo-stack__row {
+  position: absolute;
+  left: -.55em;
+  bottom: -.95em;
+  display: flex;
+  align-items: center;
+  gap: .3em;
+  max-width: calc(100% + .55em + var(--photo-stack-hit-r) - .15em);
+}
+
+/* Đang có nhãn nhắc mà nhãn phải nằm cạnh ô đếm: nới vùng chạm bên phải cho vừa nhãn */
+.photo-stack--tip { --photo-stack-hit-r: 2.6em; }
+
+.photo-stack__count {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: .28em;
+  padding: .14em .62em .06em .45em;
+  border-radius: 999px;
+  background: #fff;
+  color: var(--accent-ink);
+  font-family: var(--font-head);
+  font-weight: 700;
+  font-size: .87em;
+  line-height: 1.35;
+  font-variant-numeric: tabular-nums;
+  box-shadow: 0 .16em 0 var(--accent-soft), 0 0 0 1px rgba(91, 74, 74, .06);
+}
+
+.photo-stack__count-ic {
+  flex: none;
+  display: block;
+  width: .95em;
+  height: .95em;
+  margin-top: -.08em;
+}
+
+.photo-stack[data-count="1"] .photo-stack__count { display: none; }
+
+/* Chưa lật lần nào: mũi tên xoay ở ô đếm ngọ nguậy để mời chạm (ảnh còn mờ thì thôi) */
+.photo-stack.is-fresh:not(.is-foggy) .photo-stack__count-ic {
+  animation: photo-stack-turn 2.4s ease-in-out infinite;
+}
+
+/* Nhãn "Chạm để lật ảnh": mẩu giấy vàng bơ dán cạnh ô đếm. Hiện khi ảnh đã rõ
+   (hoặc ngay từ đầu nếu không có lớp mờ), lật lần đầu xong là bay mất. */
+.photo-stack__tip {
+  --photo-stack-tip-rot: 2deg;
+
+  flex: 0 1 auto;
+  display: flex;
+  align-items: center;
+  gap: .22em;
+  min-width: 0;
+  padding: .14em .62em .06em .36em;
+  border-radius: 999px;
+  background: #FFF4CC;
+  color: var(--berry);
+  font-family: var(--font-head);
+  font-weight: 700;
+  font-size: .87em;
+  line-height: 1.35;
+  box-shadow: 0 .16em 0 #F4D27A, 0 0 0 1px rgba(91, 74, 74, .06);
+  transform: rotate(var(--photo-stack-tip-rot));
+  transform-origin: 0 50%;
+  transition: opacity .3s ease, transform .4s cubic-bezier(.34, 1.56, .64, 1);
+}
+
+.photo-stack__tip-ic {
+  flex: none;
+  display: block;
+  width: 1.15em;
+  height: 1.15em;
+  margin: -.12em 0 0;
+  transform: rotate(-12deg);
+}
+
+.photo-stack__tip-text {
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Ảnh còn mờ: chưa nhắc lật (đang nhắc lắc) */
+.photo-stack.is-foggy .photo-stack__tip {
+  opacity: 0;
+  transform: rotate(var(--photo-stack-tip-rot)) scale(.6);
+  transition: none;
+}
+
+/* Đã lật một lần: nhãn rơi đi */
+.photo-stack:not(.is-fresh) .photo-stack__tip {
+  opacity: 0;
+  transform: translateY(.5em) rotate(calc(var(--photo-stack-tip-rot) + 6deg)) scale(.7);
+}
+
+.photo-stack.is-fresh:not(.is-foggy) .photo-stack__tip-ic {
+  animation: photo-stack-poke 1.6s ease-in-out infinite;
+}
+
+@supports (container-type: size) and (width: min(1cqh, 1em)) {
+  /* Ô chứa đủ cao (từ 280px: mọi điện thoại từ 360px, máy tính): nhãn treo ngay DƯỚI
+     ô đếm như một mẩu giấy nhớ, nằm gọn trong bề ngang tấm ảnh.
+     Ô đếm vẫn đúng chỗ cũ (neo theo mép trên = 100% + .95em - chiều cao ô đếm).
+     Nhãn làm phần thò xuống dài thêm, nên chồng ảnh dành thêm chỗ cho nó (7em thay
+     cho 5.6em). Ô chứa rộng rãi thì công thức này không chạm tới, tấm ảnh giữ đúng cỡ
+     polaroid gốc; chỉ khi ô chứa chật nó mới co tấm ảnh lại, thay vì để nhãn đè chữ. */
+  @container (min-height: 280px) {
+    .photo-stack.photo-stack--tip {
+      --photo-stack-hit-r: .75em;
+      --photo-stack-hit-b: 2.75em;
+      width: min(76%, 15em, max(6em, calc(100cqh - 7em)));
+    }
+
+    .photo-stack--tip .photo-stack__row {
+      top: calc(100% + .95em - 1.35em);
+      bottom: auto;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0;
+      width: calc(100% + .55em - .2em);
+      max-width: none;
+    }
+
+    .photo-stack--tip .photo-stack__count {
+      position: relative;
+      z-index: 1;          /* ô đếm đè lên mép trên của mẩu giấy nhắc */
+    }
+
+    .photo-stack--tip .photo-stack__tip {
+      --photo-stack-tip-rot: -2.5deg;
+      max-width: calc(100% - 1.3em);
+      margin: -.28em 0 0 1.3em;
+      padding-top: .2em;
+      transform-origin: 0 0;
+    }
+  }
+
+  /* Ô chứa thấp (điện thoại 320px): dưới ô đếm không còn chỗ, cạnh ô đếm thì nhãn
+     thò hẳn ra ngoài tấm ảnh nhỏ. Nên lúc nhãn đang hiện, nó đứng vào chỗ ô đếm,
+     canh giữa tấm ảnh, thò ra mỗi bên nhiều nhất 1em (vùng chạm nới ra 1.15em mỗi bên
+     cho vừa); ô đếm mờ đi một lúc rồi hiện lại đúng góc cũ khi nhãn rơi đi sau cú lật
+     đầu tiên. Không có gì đổi chỗ, chỉ đổi độ mờ. */
+  @container (max-height: 279.98px) {
+    .photo-stack.photo-stack--tip {
+      --photo-stack-hit-l: 1.15em;
+      --photo-stack-hit-r: 1.15em;
+    }
+
+    .photo-stack--tip .photo-stack__row {
+      left: -1em;
+      width: calc(100% + 2em);
+      max-width: none;
+    }
+
+    /* ô đếm vẫn đứng đúng chỗ cũ (-.55em so với mép trái tấm ảnh): bù .45em của hàng,
+       tính theo cỡ chữ riêng của ô đếm (.87em) nên là .45 / .87 = .52em */
+    .photo-stack--tip .photo-stack__count { margin-left: .52em; }
+
+    .photo-stack--tip .photo-stack__tip {
+      position: absolute;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      left: 0;
+      width: max-content;
+      max-width: 100%;
+      height: max-content;
+      margin: auto;
+      transform-origin: 50% 50%;
+    }
+
+    .photo-stack--tip .photo-stack__count { transition: opacity .3s ease; }
+    .photo-stack--tip.is-fresh:not(.is-foggy) .photo-stack__count { opacity: 0; }
+
+    /* Tấm ảnh co lại thì băng dính và sticker co theo, giữ đúng tỉ lệ như trên tấm
+       polaroid gốc ở máy 320px (băng dính ~52% bề ngang, tim ~18%), thay vì giữ
+       nguyên cỡ và phủ kín cả mép trên lẫn nửa tấm ảnh. Tỉ lệ tính theo bề ngang
+       tấm ảnh (% của khung), cao suy ra từ aspect-ratio. */
+    .photo-stack-wrap .photo-stack__tape {
+      top: 0;
+      width: min(5.5em, 52%);
+      height: auto;
+      aspect-ratio: 5.5 / 1.55;
+      margin-top: max(-.75em, -7.1%);
+    }
+
+    .photo-stack-wrap .photo-stack__sticker--heart {
+      right: max(-.65em, -6%);
+      width: min(1.9em, 18%);
+      height: auto;
+      aspect-ratio: 1 / 1;
+    }
+
+    .photo-stack-wrap .photo-stack__sticker--cap {
+      right: max(-.8em, -7.4%);
+      width: min(2.5em, 23%);
+      height: auto;
+      aspect-ratio: 2.5 / 2.1;
+    }
+  }
+
+  /* Điện thoại hẹp (ô chứa ảnh dưới 240px): lúc đang có nhãn nhắc thì ô đếm bỏ bớt
+     mũi tên xoay, nhường chỗ để nhãn hiện đủ chữ thay vì bị cắt "…" */
+  @container (max-width: 240px) {
+    .photo-stack.is-fresh:not(.is-foggy) .photo-stack__count-ic { display: none; }
+    .photo-stack.is-fresh:not(.is-foggy) .photo-stack__count { padding-left: .62em; }
+    .photo-stack__row { gap: .25em; }
+  }
+}
+
+/* ---------- "Bóng ma" của tấm ảnh vừa bị gạt đi ---------- */
+
+.photo-stack__ghost {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  border-radius: .35em;
+  background: #FFFBF2;
+  box-shadow: 0 .6em 1.3em -.4em rgba(91, 74, 74, .4), 0 0 0 1px rgba(91, 74, 74, .07);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.photo-stack__ghost--out { z-index: 4; }   /* bay ra phía trên tấm mới */
+.photo-stack__ghost--in { z-index: 0; }    /* rồi chui vào dưới đáy chồng */
+
+.photo-stack.is-toss .photo-stack__ghost--out { animation: photo-stack-toss-out .66s both; }
+.photo-stack.is-toss .photo-stack__ghost--in { animation: photo-stack-toss-in .66s both; }
+
+/* Tấm mới trồi lên */
+.photo-stack.is-toss .photo-stack__card,
+.photo-stack.is-toss .photo-stack__top {
+  animation: photo-stack-rise .5s cubic-bezier(.34, 1.56, .64, 1) both;
+}
+
+/* ---------- Lắc ảnh ---------- */
+
+/* Ảnh còn mờ: thỉnh thoảng tự rung nhẹ để mời lắc */
+.photo-stack.is-foggy .photo-stack__card,
+.photo-stack.is-foggy .photo-stack__top {
+  animation: photo-stack-nudge 2.8s ease-in-out infinite;
+}
+
+.photo-stack.is-wobble .photo-stack__card,
+.photo-stack.is-wobble .photo-stack__top {
+  animation: photo-stack-wobble .7s ease-in-out;
+}
+
+@keyframes photo-stack-wobble {
+  0%, 100% { transform: rotate(var(--photo-stack-tilt)) scale(1); }
+  20%      { transform: rotate(calc(var(--photo-stack-tilt) + 9deg)) scale(1.04); }
+  45%      { transform: rotate(calc(var(--photo-stack-tilt) - 5deg)) scale(1.04); }
+  70%      { transform: rotate(calc(var(--photo-stack-tilt) + 6deg)) scale(1.01); }
+}
+
+@keyframes photo-stack-nudge {
+  0%, 70%, 100% { transform: rotate(var(--photo-stack-tilt)); }
+  77%           { transform: rotate(calc(var(--photo-stack-tilt) + 3.5deg)); }
+  85%           { transform: rotate(calc(var(--photo-stack-tilt) - 3deg)); }
+  93%           { transform: rotate(calc(var(--photo-stack-tilt) + 1.5deg)); }
+}
+
+@keyframes photo-stack-rise {
+  from { transform: rotate(var(--photo-stack-tilt)) scale(.9); }
+  to   { transform: rotate(var(--photo-stack-tilt)) scale(1); }
+}
+
+/* Tấm cũ (đang úp) trượt sang phải rồi mờ đi... */
+@keyframes photo-stack-toss-out {
+  0% {
+    transform: translate(0, 0) rotate(var(--photo-stack-tilt)) scale(1);
+    opacity: 1;
+    animation-timing-function: cubic-bezier(.3, .7, .4, 1);
+  }
+  40% {
+    transform: translate(21%, 8%) rotate(8deg) scale(.91);
+    opacity: 1;
+    animation-timing-function: linear;
+  }
+  54%, 100% {
+    transform: translate(23%, 10%) rotate(9deg) scale(.89);
+    opacity: 0;
+  }
+}
+
+/* ...đúng lúc đó nó hiện lại ở phía dưới và chui vào đáy chồng */
+@keyframes photo-stack-toss-in {
+  0%, 38% {
+    transform: translate(21%, 8%) rotate(8deg) scale(.91);
+    opacity: 0;
+    animation-timing-function: linear;
+  }
+  52% {
+    transform: translate(23%, 10%) rotate(9deg) scale(.89);
+    opacity: 1;
+    animation-timing-function: cubic-bezier(.5, 0, .3, 1);
+  }
+  92% { opacity: 1; }
+  100% {
+    transform: translate(.4em, .32em) rotate(2.5deg) scale(1);
+    opacity: 0;
+  }
+}
+
+@keyframes photo-stack-beat {
+  0%, 100% { transform: scale(1); }
+  30%      { transform: scale(1.16); }
+  55%      { transform: scale(.96); }
+}
+
+@keyframes photo-stack-pop {
+  from { transform: scale(.6); }
+  to   { transform: scale(1); }
+}
+
+@keyframes photo-stack-turn {
+  0%, 55% { transform: rotate(0deg); }
+  100%    { transform: rotate(-360deg); }
+}
+
+/* Ngón tay chọc chọc vào tấm ảnh */
+@keyframes photo-stack-poke {
+  0%, 50%, 100% { transform: rotate(-12deg) translate(0, 0); }
+  62%           { transform: rotate(-20deg) translate(.06em, -.16em); }
+  74%           { transform: rotate(-12deg) translate(0, 0) scale(.92); }
+  86%           { transform: rotate(-18deg) translate(.04em, -.1em); }
+}
+
+/* ---------- Giảm chuyển động ----------
+   Không xoay 3D: hai mặt chỉ đổi chỗ cho nhau tức thì (keyframes đã bị base tắt). */
+
+.reduce-motion .photo-stack__flip,
+.reduce-motion .photo-stack__card.is-back .photo-stack__flip {
+  transform: none;
+  transition: none;
+}
+
+.reduce-motion .photo-stack__face { transition: none; }
+.reduce-motion .photo-stack__face--front,
+.reduce-motion .photo-stack__face--back { transform: none; }
+
+.reduce-motion .photo-stack__cap,
+.reduce-motion .photo-stack__hint,
+.reduce-motion .photo-stack__film,
+.reduce-motion .photo-stack__sticker,
+.reduce-motion .photo-stack__tip,
+.reduce-motion .photo-stack__count { transition: none; }

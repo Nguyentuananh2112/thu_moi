@@ -1,0 +1,636 @@
+/* =====================================================================
+   love-race.css - trang trò chơi "Ai thương nhiều hơn?" (js/cute/love-race.js)
+
+   Bố cục từ trên xuống: tiêu đề, bảng điểm hai bạn gấu, trái tim để chạm,
+   thanh thời gian, lời nhắn và nút chơi tiếp. Phần lời nhắn + nút luôn
+   chừa sẵn chỗ nên trái tim không bị xô lệch khi kết quả hiện ra.
+
+   Trạng thái nằm ở class trên .page--love-race (bản sao lúc lật trang
+   nhìn vẫn đúng): love-race--running, --hurry, --frozen, --over, --win,
+   --tie, --sum. Chỉ có transform và opacity chuyển động.
+   ===================================================================== */
+
+.page--love-race {
+  --tint: #FFE5D0;
+  --accent: #F2994A;
+  --accent-soft: #F9CFA4;
+  --accent-ink: #9A4F10;
+}
+
+/* Tiêu đề co theo bề ngang sách để nằm gọn một dòng trên máy 320 px */
+.love-race__title {
+  margin-bottom: .4em;
+  font-size: min(1.62em, calc(var(--book-w) * .078));
+}
+
+/* ---------- Bảng điểm ---------- */
+
+.love-race__board {
+  position: relative;
+  display: grid;
+  /* Khe giữa vừa đủ cho trái tim nhỏ, chừa tối đa bề ngang cho tên trên máy 320 px */
+  grid-template-columns: minmax(0, 1fr) 1.15em minmax(0, 1fr);
+  column-gap: .2em;
+  margin: 0 0 .5em;
+}
+
+.love-race__chip {
+  position: relative;
+  grid-column: 1;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-areas: "face num" "name name";
+  align-items: center;
+  column-gap: .25em;
+  min-width: 0;
+  padding: .4em .32em .3em;
+  border-radius: 1em;
+  background: #fff;
+  box-shadow: 0 .2em 0 var(--accent-soft);
+}
+
+/* Thẻ người gửi soi gương lại: hai con số nằm sát trái tim ở giữa cho dễ so */
+.love-race__chip--from {
+  grid-column: 3;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas: "num face" "name name";
+}
+
+/* Mặt gấu: lấy nguyên bạn gấu rồi cắt tròn quanh cái đầu */
+.love-race__face {
+  grid-area: face;
+  position: relative;
+  display: block;
+  width: 2.1em;
+  height: 2.1em;
+  border-radius: 50%;
+  overflow: hidden;
+  background: var(--tint);
+  transition: transform .5s cubic-bezier(.34, 1.56, .64, 1);
+}
+
+.love-race__face .mascot {
+  position: absolute;
+  top: -5%;
+  left: -5.5%;
+  width: 111%;
+  max-width: none;
+  height: auto;
+}
+
+/* Phần thân bị cắt mất rồi, tắt hẳn cho nhẹ máy */
+.love-race__face .m-body,
+.love-race__face .m-arm-r,
+.love-race__face .m-balloon { display: none; }
+
+.love-race__num {
+  grid-area: num;
+  display: block;
+  min-width: 0;
+  text-align: center;
+  font-family: var(--font-head);
+  font-weight: 800;
+  font-size: 1.6em;
+  line-height: 1;
+  color: var(--rose);
+  font-variant-numeric: tabular-nums;
+  transition: transform .45s cubic-bezier(.5, 0, .6, 1), opacity .3s ease .12s;
+}
+
+.love-race__board--wide .love-race__num { font-size: 1.3em; }
+.love-race__board--xwide .love-race__num { font-size: 1.02em; }
+
+/* Tên dài thì cắt bằng dấu ba chấm, hai thẻ vẫn rộng bằng nhau */
+.love-race__name {
+  grid-area: name;
+  display: block;
+  min-width: 0;
+  margin-top: .15em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: center;
+  /* Font tiêu đề hẹp hơn font thân bài, nên tên vừa thẻ hơn trên máy nhỏ */
+  font-family: var(--font-head);
+  font-weight: 600;
+  /* Sách hẹp (máy 320 px) thì chữ tên nhỏ lại một chút, đúng 13 px, để "Người thương" vừa thẻ */
+  font-size: min(.9em, calc(var(--book-w) * .05));
+  line-height: 1.3;
+  color: var(--muted);
+}
+
+/* Trái tim giữa hai thẻ. Vẽ sẵn ở cỡ lớn rồi thu nhỏ lại, để lúc cộng tim
+   nó phình ra mà con số bên trong vẫn sắc nét. */
+.love-race__vs {
+  position: absolute;
+  z-index: 1;
+  top: 50%;
+  left: 50%;
+  display: grid;
+  place-items: center;
+  width: 3.4em;
+  height: 3.4em;
+  margin: -1.7em 0 0 -1.7em;
+  transform: scale(.4);
+  transition: transform .5s cubic-bezier(.34, 1.56, .64, 1) .15s;
+  pointer-events: none;
+}
+
+.love-race__vs-ic {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  color: var(--pink);
+  animation: love-race-beat 1.1s ease-in-out infinite;
+}
+
+/* Trái tim nhỏ thế chỗ con số trong thẻ, khi hai con số đã bay vào trái tim lớn */
+.love-race__mini {
+  grid-area: num;
+  justify-self: center;
+  align-self: center;
+  width: 1.35em;
+  height: 1.35em;
+  color: var(--pink);
+  opacity: 0;
+  transform: scale(.3);
+  transition: transform .45s cubic-bezier(.34, 1.56, .64, 1), opacity .2s ease;
+}
+
+/* Huy hiệu "+1" của bên thắng */
+.love-race__plus {
+  position: absolute;
+  top: -.6em;
+  right: -.35em;
+  padding: .12em .5em .02em;
+  border-radius: 999px;
+  background: var(--butter);
+  color: var(--berry);
+  font-family: var(--font-head);
+  font-weight: 800;
+  font-size: .87em;
+  line-height: 1.3;
+  box-shadow: 0 0 0 2px #fff, 0 .18em 0 2px var(--gold);
+  opacity: 0;
+  transform: scale(.2) rotate(-24deg);
+  transition: transform .45s cubic-bezier(.34, 1.56, .64, 1), opacity .15s ease;
+}
+
+/* ---------- Trái tim để chạm ---------- */
+
+.love-race__arena {
+  position: relative;
+  flex: 1 1 0;
+  min-height: 7em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Quầng sáng nhạt phía sau trái tim */
+.love-race__arena::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  background: radial-gradient(closest-side, rgba(249, 207, 164, .5), rgba(249, 207, 164, 0));
+  pointer-events: none;
+}
+
+/* Vòng tròn lan ra mời chạm, chỉ có lúc đang chờ */
+.love-race__ring {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 6.4em;
+  height: 6.4em;
+  margin: -3.2em 0 0 -3.2em;
+  border: 3px solid var(--accent-soft);
+  border-radius: 50%;
+  opacity: 0;
+  animation: love-race-ring 2.2s ease-out infinite;
+  pointer-events: none;
+}
+
+.love-race__spark--a { top: 6%; left: 3%; }
+.love-race__spark--b { top: 12%; right: 4%; color: var(--accent); width: 1.05em; height: 1.05em; animation-delay: -.9s; }
+.love-race__spark--c { bottom: 8%; left: 9%; color: var(--pink); width: .95em; height: .95em; animation-delay: -1.6s; }
+
+.love-race__heart {
+  position: relative;
+  z-index: 1;
+  flex: none;
+  /* Chừa hai bên tim ít nhất khoảng 1,2em vùng trống: vuốt từ đó là lật trang chứ không chơi */
+  width: calc(100% - 2.4em);
+  max-width: 12.5em;
+  height: 100%;
+  max-height: 12em;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 1.6em;
+  background: none;
+  color: var(--berry);
+  cursor: pointer;
+  /* Không cho trình duyệt tự cuộn khi ngón tay trượt trên tim. Ở chế độ dự phòng (sách cuộn
+     ngang) chỉ chặn sự kiện thôi là chưa đủ: trình duyệt vẫn tự cuộn sang trang khác và hủy hiệp.
+     Ở chế độ lật trang, tim đã có data-no-swipe nên vốn không lật trang được, hai chế độ như nhau. */
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-appearance: none;
+  appearance: none;
+  transition: transform .35s cubic-bezier(.34, 1.56, .64, 1), opacity .3s ease;
+}
+
+.love-race__heart:focus-visible {
+  outline: 3px solid var(--rose);
+  outline-offset: -2px;
+}
+
+.love-race__pulse {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  display: block;
+  animation: love-race-beat 1.1s ease-in-out infinite;
+}
+
+.love-race__art {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.love-race__tap {
+  position: absolute;
+  top: 41%;
+  left: 50%;
+  max-width: 5.2em;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  font-family: var(--font-head);
+  font-weight: 800;
+  font-size: 1.3em;
+  line-height: 1.05;
+  color: var(--berry);
+  transition: opacity .2s ease;
+}
+
+/* Tổng tim ở màn kết: cùng chỗ với chữ "Chạm!", to theo cỡ trái tim */
+.love-race__total {
+  position: absolute;
+  top: 43%;
+  left: 50%;
+  font-family: var(--font-head);
+  font-weight: 800;
+  font-size: 2.3em;
+  line-height: 1;
+  color: var(--berry);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(.4);
+  transition: transform .5s cubic-bezier(.34, 1.56, .64, 1), opacity .25s ease;
+}
+
+/* Trái tim đổi cỡ theo màn hình (và co lại khi nút hiện ra), nên cỡ số tính theo chính nó */
+@supports (container-type: size) {
+  .love-race__heart { container-type: size; }
+  .love-race__total { font-size: clamp(1.4em, 36cqmin, 4.2em); }
+}
+
+/* ---------- Thanh thời gian ---------- */
+
+.love-race__timer {
+  position: relative;
+  height: .6em;
+  margin: .5em .7em .55em;
+}
+
+.love-race__bar {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #fff;
+  box-shadow: 0 0 0 2px var(--accent-soft);
+  /* Giữ cho phần bo tròn vẫn cắt được ruột thanh khi ruột đang co lại (Safari cũ) */
+  transform: translateZ(0);
+}
+
+.love-race__fill {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--pink), var(--accent));
+  transform-origin: 0 50%;
+  transition: transform .3s ease;
+}
+
+/* Trái tim nhỏ chạy ở đầu thanh */
+.love-race__runner {
+  position: absolute;
+  top: 50%;
+  right: 0;
+  left: 0;
+  height: 0;
+  pointer-events: none;
+}
+
+/* Trình duyệt cũ (không có cqw): kéo cả khung vô hình của trái tim chạy sang trái */
+@supports not (width: 1cqw) {
+  .love-race__runner { transition: transform .3s ease; }
+}
+
+.love-race__runner svg {
+  position: absolute;
+  top: -.7em;
+  right: -.7em;
+  width: 1.4em;
+  height: 1.4em;
+  padding: .2em .18em .14em;
+  border-radius: 50%;
+  background: #fff;
+  color: var(--rose);
+  box-shadow: 0 0 0 2px var(--accent-soft);
+}
+
+/* Trình duyệt hiểu đơn vị cqw (gần như mọi máy hiện nay): chỉ trái tim nhỏ chạy, đúng bằng
+   bề ngang thanh (100cqw). Cái khung vô hình của nó đứng yên nên không có gì ló ra ngoài trang. */
+@supports (width: 1cqw) {
+  .love-race__timer { container-type: inline-size; }
+  .love-race__runner svg { transition: transform .3s ease; }
+}
+
+.love-race__left { display: none; }
+
+/* ---------- Lời nhắn và nút chơi tiếp ---------- */
+
+.love-race__foot {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  /* Lời nhắn luôn bám ngay dưới thanh thời gian: đổi câu hay hiện nút cũng không nhảy chỗ */
+  justify-content: flex-start;
+  min-height: 6.8em;
+  padding-top: .15em;
+}
+
+.love-race__msg {
+  margin: 0;
+  text-align: center;
+  /* Ngắt dòng cân đối, khỏi còn trơ một chữ "giây!" ở dòng dưới */
+  text-wrap: balance;
+  font-family: var(--font-head);
+  font-weight: 700;
+  font-size: .98em;
+  line-height: 1.3;
+  color: var(--accent-ink);
+}
+
+.love-race__again {
+  --btn-bg: #FFD9B0;
+  --btn-edge: #F2994A;
+  --btn-fg: #6B3608;
+  display: none;
+  flex: none;
+  max-width: 100%;
+  margin: .45em 0 .3em;
+}
+
+/* Viên "Hiệp 1/3": viền nét đứt giống khung trang, nằm đúng chỗ nút sẽ hiện */
+.love-race__round {
+  display: inline-flex;
+  align-items: center;
+  flex: none;
+  max-width: 100%;
+  margin-top: .75em;
+  padding: .2em .85em .12em .7em;
+  border: 2px dashed var(--accent-soft);
+  border-radius: 999px;
+  font-family: var(--font-head);
+  font-weight: 700;
+  font-size: .9em;
+  line-height: 1.3;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.love-race__round .ic {
+  width: 1.05em;
+  height: 1.05em;
+  margin: -.08em .4em 0 0;
+  color: var(--accent);
+}
+
+.love-race__round-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ---------- Đang đua ---------- */
+
+.love-race--running .love-race__pulse { animation: none; }
+.love-race--running .love-race__ring { display: none; }
+
+/* Đang đua thì cả vùng quanh trái tim cũng không cho trình duyệt tự cuộn: ngón cái bấm
+   lệch ra mép tim vẫn không cuộn sách đi ở chế độ dự phòng. touch-action được đọc lúc
+   ngón tay vừa chạm xuống, nên class đã có sẵn từ cú chạm đầu tiên là kịp.
+   Chỉ khóa tới lúc công bố (nửa giây nín thở). Class --frozen còn ở lại suốt màn kết quả
+   để giữ dáng trái tim mờ, nên phải loại --over và --tie ra: không thì ở chế độ dự phòng
+   vùng chơi chặn cuộn sách mãi mãi sau hiệp đầu. */
+.love-race--running .love-race__arena,
+.love-race--frozen:not(.love-race--over):not(.love-race--tie) .love-race__arena { touch-action: none; }
+
+.love-race--running .love-race__fill {
+  transform: scaleX(0);
+  transition: transform var(--love-race-s, 8s) linear;
+}
+
+@supports (width: 1cqw) {
+  .love-race--running .love-race__runner svg {
+    transform: translateX(-100cqw);
+    transition: transform var(--love-race-s, 8s) linear;
+  }
+}
+
+@supports not (width: 1cqw) {
+  .love-race--running .love-race__runner {
+    transform: translateX(-100%);
+    transition: transform var(--love-race-s, 8s) linear;
+  }
+}
+
+/* Giây cuối: thanh đổi sang màu hồng đậm cho gấp gáp */
+.love-race--hurry .love-race__fill { background: var(--rose); }
+
+/* ---------- Hết giờ ---------- */
+
+.love-race--frozen .love-race__fill {
+  transform: scaleX(0);
+  transition: none;
+}
+
+@supports (width: 1cqw) {
+  .love-race--frozen .love-race__runner svg {
+    transform: translateX(-100cqw);
+    transition: none;
+  }
+}
+
+@supports not (width: 1cqw) {
+  .love-race--frozen .love-race__runner {
+    transform: translateX(-100%);
+    transition: none;
+  }
+}
+
+.love-race--frozen .love-race__heart {
+  opacity: .38;
+  transform: scale(.84);
+  cursor: default;
+}
+
+.love-race--frozen .love-race__pulse { animation: none; }
+.love-race--frozen .love-race__ring { display: none; }
+.love-race--frozen .love-race__tap { opacity: 0; }
+
+/* Hết giờ rồi thì trái tim không cần to nữa: câu kết quả tự viết quá dài được phép lấn chỗ của nó */
+.love-race--frozen .love-race__arena { min-height: 4.5em; }
+
+.love-race--over .love-race__again { display: inline-flex; }
+.love-race--over .love-race__round { display: none; }
+
+.love-race__again--nudge { animation: love-race-nudge .5s ease-in-out; }
+
+/* Bên thắng: viền vàng, huy hiệu +1, gấu cười tít mắt */
+.love-race--win .love-race__chip--from {
+  box-shadow: 0 0 0 2px var(--gold), 0 .2em 0 2px var(--gold);
+}
+
+.love-race--win .love-race__plus {
+  opacity: 1;
+  transform: rotate(8deg);
+}
+
+.love-race--win .love-race__chip--from .m-eye,
+.love-race--tie .love-race__face .m-eye { opacity: 0; }
+
+.love-race--win .love-race__chip--from .m-eye-happy,
+.love-race--tie .love-race__face .m-eye-happy { opacity: 1; }
+
+/* Hòa: cả hai thẻ cùng viền hồng */
+.love-race--tie .love-race__chip {
+  box-shadow: 0 0 0 2px #FFC2D1, 0 .2em 0 2px #FFC2D1;
+}
+
+/* Cộng tim: hai con số trôi xuống giữa, đổ vào trái tim lớn. Trái tim lớn sống lại,
+   đập tiếp và ôm lấy tổng; thẻ nào cũng còn một trái tim nhỏ; hai bạn gấu nghiêng đầu vào nhau. */
+.love-race--sum .love-race__num { opacity: 0; }
+.love-race--sum .love-race__num--to { transform: translate(1.6em, 2.4em) scale(.4); }
+.love-race--sum .love-race__num--from { transform: translate(-1.6em, 2.4em) scale(.4); }
+.love-race--sum .love-race__vs { transform: scale(.55); }
+
+.love-race--sum .love-race__mini {
+  opacity: 1;
+  transform: none;
+  transition-delay: .5s;
+}
+
+.love-race--sum .love-race__chip--to .love-race__face { transform: translateX(.1em) rotate(12deg); }
+.love-race--sum .love-race__chip--from .love-race__face { transform: translateX(-.1em) rotate(-12deg); }
+
+.love-race--sum .love-race__heart {
+  opacity: 1;
+  transform: none;
+  transition-delay: .25s;
+}
+
+.love-race--sum .love-race__pulse { animation: love-race-beat 1.1s ease-in-out .9s infinite; }
+
+.love-race--sum .love-race__total {
+  opacity: 1;
+  transform: translate(-50%, -50%);
+  transition-delay: .4s;
+}
+
+/* ---------- Chuyển động ---------- */
+
+@keyframes love-race-beat {
+  0%, 100% { transform: scale(1); }
+  30%      { transform: scale(1.07); }
+  55%      { transform: scale(.97); }
+}
+
+@keyframes love-race-ring {
+  0%   { transform: scale(.72); opacity: 0; }
+  18%  { opacity: .85; }
+  100% { transform: scale(1.5); opacity: 0; }
+}
+
+@keyframes love-race-nudge {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  25%      { transform: translateY(-.3em) rotate(-3deg); }
+  50%      { transform: translateY(0) rotate(3deg); }
+  75%      { transform: translateY(-.15em) rotate(-2deg); }
+}
+
+/* ---------- Giảm chuyển động ----------
+   Không có thanh chạy, không có hiệu ứng nhún: thay bằng dòng chữ đếm số giây còn lại. */
+
+.reduce-motion .love-race__bar,
+.reduce-motion .love-race__runner,
+.reduce-motion .love-race__ring { display: none; }
+
+.reduce-motion .love-race__timer {
+  display: flex;
+  justify-content: center;
+  height: auto;
+  margin: .3em 0 .4em;
+}
+
+/* Đồng hồ đứng yên: một viên kẹo trắng viền cam, khác hẳn dòng lời nhắc bên dưới */
+.reduce-motion .love-race__left {
+  display: block;
+  padding: .12em .8em .04em;
+  border-radius: 999px;
+  background: #fff;
+  box-shadow: 0 0 0 2px var(--accent-soft);
+  text-align: center;
+  font-family: var(--font-head);
+  font-weight: 800;
+  font-size: 1.02em;
+  line-height: 1.3;
+  color: var(--accent-ink);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Giây cuối: viền đồng hồ chuyển hồng đậm (chữ giữ màu nâu cam cho dễ đọc) */
+.reduce-motion .love-race--hurry .love-race__left { box-shadow: 0 0 0 2px var(--rose); }
+
+.reduce-motion .love-race__num,
+.reduce-motion .love-race__mini,
+.reduce-motion .love-race__face,
+.reduce-motion .love-race__vs,
+.reduce-motion .love-race__total,
+.reduce-motion .love-race__plus,
+.reduce-motion .love-race__heart,
+.reduce-motion .love-race__tap,
+.reduce-motion .love-race__again {
+  transition: none;
+}

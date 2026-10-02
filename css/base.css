@@ -1,0 +1,539 @@
+/* =====================================================================
+   base.css - biến màu, font, khung trang, các lớp phủ
+   ===================================================================== */
+
+:root {
+  /* Bảng màu */
+  --cream: #FFF8F0;
+  --paper: #FFFDF9;
+  --blush: #FFD6E0;
+  --pink: #FF8FAB;
+  --rose: #E8638C;
+  --peach: #FFE5D0;
+  --butter: #FFE9A8;
+  --mint: #CDEFE0;
+  --sky: #CFE8FF;
+  --lav: #E4D7FF;
+  --gold: #F6C453;
+  --plum: #4A3F55;
+  --cocoa: #5B4A4A;
+  --muted: #7A6666;
+  --berry: #5B2A3C;
+  /* Hồng đậm cho chữ tiêu đề và chữ ký: --rose nằm trên vệt dạ quang chỉ đạt khoảng 2:1, khó đọc.
+     Màu này đạt trên 3:1 trên mọi vệt màu của các trang mà vẫn là sắc hồng của cuốn sách. */
+  --rose-ink: #BD3A67;
+
+  /* Font (đều có dấu tiếng Việt) */
+  --font-head: "Baloo 2", "Quicksand", system-ui, sans-serif;
+  --font-body: "Quicksand", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-script: "Pacifico", "Baloo 2", cursive;
+  --font-hand: "Mali", "Quicksand", system-ui, sans-serif;
+
+  /* Kích thước khung */
+  --top-h: 56px;
+  --bottom-h: 76px;
+  --safe-t: env(safe-area-inset-top, 0px);
+  --safe-b: env(safe-area-inset-bottom, 0px);
+  /* Khoảng thở giữa cuốn sách với thanh trên và hàng nút dưới */
+  --gap-v: 16px;
+  --avail-h: calc(100vh - var(--top-h) - var(--bottom-h) - var(--safe-t) - var(--safe-b) - var(--gap-v));
+
+  /* Một biến điều khiển cả cuốn sách lẫn cỡ chữ. Tỉ lệ trang 360 x 580.
+     Sách luôn vừa hàng giữa (không đặt sàn 220px như trước: sàn đó làm sách tràn đè lên nút
+     ở màn thấp). Màn thấp thì lấy bớt chỗ của thanh trên và hàng nút dưới, xem đoạn @media bên dưới.
+     Sàn 160px chỉ để chặn giá trị âm khi màn nằm ngang (lúc đó đã có lớp nhắc xoay dọc che). */
+  --book-w: max(160px, min(92vw, 420px, calc(var(--avail-h) * 0.62)));
+  --book-h: calc(var(--book-w) * 580 / 360);
+
+  --r-page: 20px;
+  --r-spine: 7px;
+}
+
+@supports (height: 100dvh) {
+  :root {
+    --avail-h: calc(100dvh - var(--top-h) - var(--bottom-h) - var(--safe-t) - var(--safe-b) - var(--gap-v));
+  }
+}
+
+/* Màn thấp (Safari và trình duyệt trong Zalo/Messenger khi còn hiện thanh công cụ, ví dụ iPhone 8
+   chỉ còn khoảng 548px): thu gọn thanh trên và hàng nút dưới để nhường chỗ cho sách và chữ.
+   Ngưỡng 560px để màn 320x568 (cỡ chuẩn các tính năng đã căn theo) giữ nguyên bố cục cũ. */
+@media (max-height: 560px) {
+  :root {
+    --top-h: 48px;
+    --bottom-h: 56px;
+  }
+}
+
+/* Màn rất thấp (iPhone 4 inch khi còn thanh công cụ, khoảng 454-500px) */
+@media (max-height: 520px) {
+  :root {
+    --top-h: 46px;
+    --bottom-h: 52px;
+    /* 6px: ở 320x460 sách vẫn rộng 220px như trước, các tính năng đã căn chỉnh theo cỡ đó */
+    --gap-v: 6px;
+  }
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html, body {
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  font-family: var(--font-body);
+  font-weight: 500;
+  color: var(--cocoa);
+  background:
+    radial-gradient(60vmax 60vmax at 0% 0%, rgba(255, 214, 224, .95), transparent 62%),
+    radial-gradient(52vmax 52vmax at 100% 8%, rgba(207, 232, 255, .85), transparent 62%),
+    radial-gradient(60vmax 60vmax at 95% 100%, rgba(228, 215, 255, .9), transparent 62%),
+    radial-gradient(52vmax 52vmax at 0% 100%, rgba(255, 233, 168, .75), transparent 62%),
+    var(--cream);
+  -webkit-tap-highlight-color: transparent;
+  -webkit-font-smoothing: antialiased;
+}
+
+button { font: inherit; color: inherit; }
+
+.sprite {
+  position: absolute;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.ic {
+  display: block;
+  flex: none;
+  width: 1.25em;
+  height: 1.25em;
+}
+
+/* ---------- Bố cục chính ---------- */
+
+.app {
+  position: relative;
+  z-index: 2;
+  height: 100%;
+  display: grid;
+  grid-template-rows: var(--top-h) minmax(0, 1fr) var(--bottom-h);
+  justify-items: center;
+  align-items: center;
+  padding:
+    var(--safe-t)
+    max(12px, env(safe-area-inset-right, 0px))
+    var(--safe-b)
+    max(12px, env(safe-area-inset-left, 0px));
+}
+
+.topbar {
+  width: min(100%, 460px);
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  padding: 0 2px;
+}
+
+.controls {
+  width: min(100%, var(--book-w));
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+/* ---------- Nút tròn ---------- */
+
+.icon-btn {
+  flex: none;
+  width: 48px;
+  height: 48px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: #fff;
+  color: var(--rose);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  box-shadow: 0 4px 0 rgba(232, 99, 140, .28), 0 10px 18px -10px rgba(232, 99, 140, .6);
+  transition: transform .12s ease, box-shadow .12s ease, opacity .2s ease;
+  touch-action: manipulation;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.icon-btn .ic { width: 24px; height: 24px; }
+
+.icon-btn:active {
+  transform: translateY(3px) scale(.96);
+  box-shadow: 0 1px 0 rgba(232, 99, 140, .28);
+}
+
+.icon-btn:focus-visible,
+.btn:focus-visible,
+.btn-no:focus-visible,
+.pet:focus-visible,
+.polaroid:focus-visible {
+  outline: 3px solid var(--rose);
+  outline-offset: 3px;
+}
+
+.icon-btn[disabled] {
+  opacity: .35;
+  cursor: default;
+  box-shadow: 0 2px 0 rgba(232, 99, 140, .18);
+}
+
+/* Màn thấp: nút tròn nhỏ lại cho vừa hàng đã thu gọn, nhưng không dưới 44px (vùng chạm tối thiểu) */
+@media (max-height: 560px) {
+  .icon-btn { width: 44px; height: 44px; }
+  .icon-btn .ic { width: 22px; height: 22px; }
+}
+
+#btn-sound[aria-pressed="true"] .ic--off,
+#btn-sound[aria-pressed="false"] .ic--on { display: none; }
+
+/* Nhạc nền đang phát (js/audio.js gắn class bgm-playing lên thẻ html): một nốt nhạc nhỏ
+   nhún nhảy ở góc nút loa, để người xem biết nhạc từ đâu ra và muốn tắt thì bấm vào đâu */
+#btn-sound { position: relative; }
+
+#btn-sound::after {
+  content: '';
+  position: absolute;
+  top: -1px;
+  right: -6px;
+  width: 17px;
+  height: 17px;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle cx='8.6' cy='17.6' r='4' fill='%23E8638C'/%3E%3Cpath d='M10.6 17.6V3.2l8.6 1.9v3.8l-6.6-1.4v10.1z' fill='%23E8638C'/%3E%3C/svg%3E") center / contain no-repeat;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.bgm-playing #btn-sound::after { animation: bgm-note 2.8s ease-in-out infinite; }
+
+/* Giảm chuyển động: nốt nhạc đứng yên */
+.reduce-motion.bgm-playing #btn-sound::after { opacity: 1; }
+
+/* Trình duyệt chặn nhạc (chưa có cú chạm): bong bóng nhỏ nằm cạnh nút loa, chỉ về phía nút */
+.bgm-cue {
+  display: none;
+  position: relative;
+  flex: none;
+  margin-right: 10px;
+  padding: 7px 12px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--butter, #FFE9A8);
+  color: #5B2A3C;
+  font: 700 13px/1.2 var(--font-head, sans-serif);
+  white-space: nowrap;
+  box-shadow: 0 3px 0 rgba(232, 99, 140, .25);
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.bgm-cue::after {
+  content: '';
+  position: absolute;
+  right: -6px;
+  top: 50%;
+  margin-top: -6px;
+  border: 6px solid transparent;
+  border-right: 0;
+  border-left-color: var(--butter, #FFE9A8);
+}
+
+.bgm-blocked .bgm-cue { display: block; animation: bgm-cue 1.6s ease-in-out infinite; }
+.bgm-blocked #btn-sound { animation: bgm-cue-btn 1.6s ease-in-out infinite; }
+
+@keyframes bgm-cue {
+  0%, 100% { transform: translateX(0); }
+  50%      { transform: translateX(-4px); }
+}
+
+@keyframes bgm-cue-btn {
+  0%, 100% { transform: scale(1); }
+  50%      { transform: scale(1.08); }
+}
+
+@keyframes bgm-note {
+  0%   { opacity: 0; transform: translate(-3px, 7px) scale(.5) rotate(-14deg); }
+  22%  { opacity: 1; transform: translate(0, 0) scale(1) rotate(-4deg); }
+  62%  { opacity: 1; transform: translate(2px, -3px) scale(1) rotate(8deg); }
+  100% { opacity: 0; transform: translate(4px, -7px) scale(.85) rotate(14deg); }
+}
+
+/* ---------- Chấm chỉ trang ---------- */
+
+.dots {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* Mỗi chấm là một trái tim nhỏ */
+.dots li {
+  width: 11px;
+  height: 11px;
+  color: rgba(232, 99, 140, .3);
+  transition:
+    width .35s cubic-bezier(.34, 1.56, .64, 1),
+    height .35s cubic-bezier(.34, 1.56, .64, 1),
+    color .3s ease;
+}
+
+.dots li svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.dots li.is-on {
+  width: 18px;
+  height: 18px;
+  color: var(--rose);
+}
+
+/* Sách có từ 9 trang trở lên thì tim nhỏ lại cho vừa hàng */
+.dots--many { gap: 3px; }
+.dots--many li { width: 8px; height: 8px; }
+.dots--many li.is-on { width: 14px; height: 14px; }
+
+/* ---------- Hạt bay nền ---------- */
+
+.ambient {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 1;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.mote {
+  position: absolute;
+  top: 0;
+  left: var(--x);
+  width: var(--s);
+  height: var(--s);
+  opacity: 0;
+  will-change: transform;
+}
+
+/* ---------- Lớp hiệu ứng ăn mừng ---------- */
+
+.fx {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 70;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.fx__item {
+  position: absolute;
+  display: block;
+  will-change: transform;
+}
+
+/* ---------- Màn chờ ---------- */
+
+.loader {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 100;
+  display: grid;
+  place-items: center;
+  background:
+    radial-gradient(60vmax 60vmax at 0% 0%, rgba(255, 214, 224, .95), transparent 62%),
+    radial-gradient(60vmax 60vmax at 100% 100%, rgba(228, 215, 255, .9), transparent 62%),
+    var(--cream);
+  transition: opacity .5s ease, visibility .5s ease;
+}
+
+.loader.is-done {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.loader__box {
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+}
+
+.loader__bear {
+  display: block;
+  width: 124px;
+}
+
+.loader__shadow {
+  width: 78px;
+  height: 12px;
+  border-radius: 50%;
+  background: rgba(232, 99, 140, .22);
+}
+
+.loader__text {
+  margin: 10px 0 0;
+  font-family: var(--font-head);
+  font-weight: 700;
+  font-size: 20px;
+  color: var(--rose);
+}
+
+.loader__dots i { font-style: normal; }
+
+/* ---------- Nhắc xoay dọc ---------- */
+
+.rotate {
+  display: none;
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 90;
+  place-items: center;
+  background: var(--blush);
+  color: var(--berry);
+  text-align: center;
+  font-family: var(--font-head);
+  font-weight: 700;
+  font-size: 20px;
+}
+
+.rotate__ic {
+  width: 44px;
+  height: 44px;
+  color: var(--rose);
+}
+
+.rotate p { margin: 6px 0 0; }
+
+@media (orientation: landscape) and (max-height: 480px) {
+  .rotate { display: grid; }
+}
+
+/* ---------- Cửa sổ nổi dùng chung (js/overlay.js) ---------- */
+
+.sheet {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 60;
+  display: grid;
+  /* Một hàng đúng bằng chiều cao màn hình (trừ lề), để thẻ dài không tràn ra ngoài mà cuộn bên trong */
+  grid-template-rows: minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr);
+  place-items: center;
+  padding:
+    max(16px, env(safe-area-inset-top, 0px))
+    16px
+    max(16px, env(safe-area-inset-bottom, 0px));
+  font-size: clamp(15px, 4.4vw, 18px);
+}
+
+.sheet[hidden] { display: none; }
+
+.sheet__backdrop {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  background: rgba(74, 63, 85, .52);
+  opacity: 0;
+  transition: opacity .25s ease;
+}
+
+.sheet__card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: min(100%, 400px);
+  max-height: 100%;
+  min-height: 0;
+  border-radius: 26px;
+  background: var(--paper);
+  color: var(--cocoa);
+  box-shadow: 0 26px 50px -18px rgba(91, 42, 60, .65), inset 0 0 0 1px rgba(232, 99, 140, .18);
+  outline: none;
+  opacity: 0;
+  transform: translateY(18px) scale(.94);
+  transition: opacity .25s ease, transform .35s cubic-bezier(.34, 1.56, .64, 1);
+}
+
+.sheet__body {
+  min-height: 0;
+  padding: 24px 20px 20px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+.sheet.is-open .sheet__backdrop { opacity: 1; }
+
+.sheet.is-open .sheet__card {
+  opacity: 1;
+  transform: none;
+}
+
+.sheet__close {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 2;
+  width: 44px;
+  height: 44px;
+}
+
+.reduce-motion .sheet__card {
+  transform: none;
+  transition: opacity .2s linear;
+}

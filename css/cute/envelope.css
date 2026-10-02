@@ -1,0 +1,662 @@
+/* =====================================================================
+   envelope.css - phong bì niêm phong dấu sáp (lớp mở đầu, js/cute/envelope.js)
+
+   Mọi kích thước của phong bì tính bằng em: 1em = 1/20 bề ngang phong bì,
+   nên cả hình tự co giãn theo màn hình. Chỉ transform và opacity được chuyển động.
+
+   Trạng thái (class trên .envelope):
+     is-in       màn chờ đã tắt, phong bì rơi xuống
+     is-opening  đã chạm: dấu sáp nứt, nắp bật, thư trượt lên
+     is-flap-up  nắp đã dựng đứng, lùi ra sau lá thư
+     is-leaving  cả lớp mờ đi, sách hiện ra
+     is-keys     người xem dùng bàn phím: hiện viền tiêu điểm
+   ===================================================================== */
+
+.envelope {
+  /* Bề ngang phong bì: khoảng 86% màn hình, tối đa 380px, và không cao quá màn hình thấp */
+  --envelope-w: min(86vw, 380px, calc(100vh - 110px));
+
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 85;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding:
+    max(16px, env(safe-area-inset-top, 0px))
+    0
+    max(16px, calc(env(safe-area-inset-bottom, 0px) + 2vh));
+  overflow: hidden;
+  /* Nền y hệt body (css/base.css) để không thấy cuốn sách phía sau */
+  background:
+    radial-gradient(60vmax 60vmax at 0% 0%, rgba(255, 214, 224, .95), transparent 62%),
+    radial-gradient(52vmax 52vmax at 100% 8%, rgba(207, 232, 255, .85), transparent 62%),
+    radial-gradient(60vmax 60vmax at 95% 100%, rgba(228, 215, 255, .9), transparent 62%),
+    radial-gradient(52vmax 52vmax at 0% 100%, rgba(255, 233, 168, .75), transparent 62%),
+    var(--cream, #FFF8F0);
+  color: var(--berry, #5B2A3C);
+  font-family: var(--font-head);
+  font-weight: 700;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+  touch-action: manipulation;
+  transition: opacity .4s ease, transform .44s cubic-bezier(.4, 0, .7, 1);
+}
+
+@supports (height: 100dvh) {
+  .envelope { --envelope-w: min(86vw, 380px, calc(100dvh - 110px)); }
+}
+
+/* Đang mờ: thôi bắt cú chạm để nút mũi tên, nút âm thanh bên dưới dùng được ngay.
+   Cú chạm dồn rơi vào cuốn sách thì envelope.js nuốt mất (xem "Chặn tràng chạm dồn"),
+   nên bìa không bị lật nhầm. */
+.envelope.is-leaving {
+  opacity: 0;
+  transform: scale(1.14);
+  pointer-events: none;
+}
+
+.envelope__stage {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: var(--envelope-w);
+  font-size: calc(var(--envelope-w) / 20);
+}
+
+/* Trước khi màn chờ tắt thì chưa bày gì ra, để phong bì "rơi xuống" đúng lúc */
+.envelope:not(.is-in) .envelope__stage { opacity: 0; }
+
+.envelope__drop {
+  position: relative;
+  width: 20em;
+}
+
+.envelope.is-in .envelope__drop {
+  animation: envelope-drop .9s cubic-bezier(.3, .7, .4, 1) both;
+}
+
+@keyframes envelope-drop {
+  0%   { transform: translate3d(0, -75vh, 0) rotate(-9deg); opacity: 0; }
+  12%  { opacity: 1; }
+  52%  { transform: translate3d(0, 0, 0) rotate(2deg) scale(1.05, .93); opacity: 1; }
+  70%  { transform: translate3d(0, -1.3em, 0) rotate(-1deg) scale(.98, 1.03); }
+  86%  { transform: translate3d(0, 0, 0) rotate(0deg) scale(1.02, .98); }
+  100% { transform: none; opacity: 1; }
+}
+
+/* Lơ lửng nhè nhẹ sau khi đã rơi xuống */
+.envelope.is-in .envelope__float {
+  animation: envelope-float 3.4s ease-in-out .9s infinite;
+}
+
+.envelope.is-opening .envelope__float { animation-play-state: paused; }
+
+@keyframes envelope-float {
+  0%, 100% { transform: translateY(0) rotate(-1.2deg); }
+  50%      { transform: translateY(-.45em) rotate(1.2deg); }
+}
+
+/* Bóng dưới chân phong bì */
+.envelope__shadow {
+  position: absolute;
+  left: 14%;
+  right: 14%;
+  bottom: -2.5em;
+  height: 1em;
+  border-radius: 50%;
+  background: rgba(232, 99, 140, .2);
+}
+
+.envelope.is-in .envelope__shadow {
+  animation:
+    envelope-shadow-in .9s cubic-bezier(.3, .7, .4, 1) both,
+    envelope-shadow 3.4s ease-in-out .9s infinite;
+}
+
+.envelope.is-opening .envelope__shadow { animation-play-state: paused; }
+
+@keyframes envelope-shadow-in {
+  0%   { transform: scale(.3); opacity: 0; }
+  52%  { transform: scale(1.06); opacity: 1; }
+  70%  { transform: scale(.82); opacity: .7; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes envelope-shadow {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50%      { transform: scale(.86); opacity: .7; }
+}
+
+/* ---------- Cả phong bì là một nút lớn ---------- */
+
+.envelope__btn {
+  position: relative;
+  display: block;
+  width: 20em;
+  height: 13.8em;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 1.2em;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: center;
+  cursor: pointer;
+  outline: none;
+  touch-action: manipulation;
+  -webkit-appearance: none;
+  appearance: none;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform .14s ease;
+}
+
+.envelope__btn * { pointer-events: none; }
+
+.envelope__btn:active { transform: scale(.975); }
+
+/* Viền tiêu điểm chỉ hiện khi người xem thật sự dùng bàn phím (class is-keys do JS gắn),
+   vì nút được tự động nhận tiêu điểm ngay lúc mở trang */
+.envelope.is-keys .envelope__btn:focus {
+  outline: 3px solid var(--rose, #E8638C);
+  outline-offset: 6px;
+}
+
+.envelope__btn svg { display: block; }
+
+/* Lòng phong bì (lớp lót tim), nhìn thấy khi nắp mở */
+.envelope__back {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 0;
+  border-radius: 1.2em;
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40' viewBox='0 0 40 40'%3E%3Cpath fill='%23FFB3C6' d='M10 15.5c-2.6-2-4.5-3.7-4.5-5.7 0-1.4 1.1-2.4 2.4-2.4.9 0 1.6.4 2.1 1.2.5-.8 1.2-1.2 2.1-1.2 1.3 0 2.4 1 2.4 2.4 0 2-1.9 3.7-4.5 5.7z'/%3E%3Cpath fill='%23FFC2D1' d='M30 35.5c-2.6-2-4.5-3.7-4.5-5.7 0-1.4 1.1-2.4 2.4-2.4.9 0 1.6.4 2.1 1.2.5-.8 1.2-1.2 2.1-1.2 1.3 0 2.4 1 2.4 2.4 0 2-1.9 3.7-4.5 5.7z'/%3E%3C/svg%3E") 0 0 / 2.9em 2.9em,
+    #FFF3F6;
+  box-shadow:
+    0 .42em 0 #EC9DB6,
+    0 1.7em 1.5em -1.1em rgba(232, 99, 140, .55);
+}
+
+/* ---------- Nắp phong bì ---------- */
+
+.envelope__flap {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 4;
+  width: 100%;
+  height: 7.6em;
+  transform-origin: 50% 0;
+}
+
+.envelope.is-flap-up .envelope__flap { z-index: 1; }
+
+.envelope__face {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+}
+
+.envelope__face svg {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.envelope__face--in { opacity: 0; }
+
+/* Nắp xoay quanh mép trên. Tới 90 độ thì đổi từ mặt ngoài sang mặt lót,
+   không phụ thuộc backface-visibility (hay lỗi trong trình duyệt nhúng). */
+.envelope.is-opening .envelope__flap {
+  animation: envelope-flap .5s linear .13s both;
+}
+
+.envelope.is-opening .envelope__face--out {
+  animation: envelope-face-out .5s linear .13s both;
+}
+
+.envelope.is-opening .envelope__face--in {
+  animation: envelope-face-in .5s linear .13s both;
+}
+
+@keyframes envelope-flap {
+  0%   { transform: perspective(46em) rotateX(0deg); animation-timing-function: cubic-bezier(.5, 0, .9, .6); }
+  45%  { transform: perspective(46em) rotateX(90deg); animation-timing-function: cubic-bezier(.1, .5, .4, 1); }
+  82%  { transform: perspective(46em) rotateX(187deg); animation-timing-function: ease-in-out; }
+  100% { transform: perspective(46em) rotateX(180deg); }
+}
+
+@keyframes envelope-face-out {
+  0%, 44.9% { opacity: 1; }
+  45%, 100% { opacity: 0; }
+}
+
+@keyframes envelope-face-in {
+  0%, 44.9% { opacity: 0; }
+  45%, 100% { opacity: 1; }
+}
+
+/* ---------- Lá thư bên trong ---------- */
+
+.envelope__letter {
+  position: absolute;
+  top: 1.1em;
+  left: 1.6em;
+  right: 1.6em;
+  z-index: 2;
+  height: 11.6em;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: .75em 1.2em 0;
+  border-radius: .9em .9em .5em .5em;
+  background: var(--paper, #FFFDF9);
+  box-shadow: inset 0 0 0 1px rgba(232, 99, 140, .28);
+}
+
+/* Khung nét đứt giống trang sách */
+.envelope__letter::before {
+  content: "";
+  position: absolute;
+  top: .42em;
+  right: .42em;
+  bottom: .42em;
+  left: .42em;
+  border: 2px dashed #FFC2D1;
+  border-radius: .6em;
+}
+
+.envelope__kicker {
+  max-width: 100%;
+  overflow: hidden;
+  font-family: var(--font-script);
+  font-weight: 400;
+  font-size: 1.5em;
+  line-height: 1.5;
+  white-space: nowrap;
+  color: var(--rose, #E8638C);
+}
+
+.envelope__line {
+  flex: none;
+  width: 9.5em;
+  height: .32em;
+  margin-top: .42em;
+  border-radius: 999px;
+  background: #FFD6E0;
+}
+
+.envelope__line--short { width: 6em; }
+
+.envelope__letter > svg {
+  flex: none;
+  width: 1.7em;
+  height: 1.7em;
+  margin-top: 1.05em;
+  color: #FFB3C6;
+}
+
+.envelope.is-opening .envelope__letter {
+  animation: envelope-letter .5s cubic-bezier(.3, 1.25, .5, 1) .52s both;
+}
+
+@keyframes envelope-letter {
+  from { transform: translate3d(0, 0, 0) rotate(0deg); }
+  to   { transform: translate3d(0, -6.3em, 0) rotate(-1.5deg); }
+}
+
+/* ---------- Thân phong bì ---------- */
+
+.envelope__front {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 3;
+  overflow: hidden;
+  border-radius: 1.2em;
+}
+
+.envelope__front > svg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* Dòng "Gửi ..." viết tay nằm ngang phần dưới phong bì */
+.envelope__addr {
+  position: absolute;
+  top: 9.2em;
+  right: 1.5em;
+  bottom: 1.35em;
+  left: 1.5em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  transform: rotate(-2deg);
+}
+
+.envelope__addr[hidden] { display: none; }
+
+.envelope__to {
+  display: block;
+  max-width: 100%;
+  font-family: var(--font-script);
+  font-weight: 400;
+  font-size: 1.7em;
+  line-height: 1.38;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  color: var(--berry, #5B2A3C);
+}
+
+/* Chữ quá dài: khít dòng lại, phần thừa (nếu còn) bị cắt gọn theo dòng. Xem fitAddress() */
+.envelope__to.is-tight {
+  line-height: 1.22;
+  overflow: hidden;
+}
+
+/* ---------- Tem thư ----------
+   Dán hẳn lên thân phong bì (vạt bên phải), ngay dưới mép nắp: khi nắp bật lên và lá thư
+   trồi ra, tem vẫn dính trên giấy chứ không lơ lửng giữa miệng phong bì.
+   Miệng phong bì ở chỗ mép trái của tem sâu khoảng 2,5em, nên tem bắt đầu từ 3em. */
+
+.envelope__stamp {
+  position: absolute;
+  top: 3em;
+  right: .95em;
+  z-index: 6;
+  display: grid;
+  place-items: center;
+  width: 2.5em;
+  height: 3em;
+  background: #fff;
+  border-radius: .2em;
+  outline: 2px dashed #FFC2D1;
+  outline-offset: -5px;
+  box-shadow: 0 .15em .45em rgba(91, 74, 74, .22);
+  transform: rotate(8deg);
+}
+
+.envelope__stamp svg {
+  width: 1.3em;
+  height: 1.3em;
+  color: var(--pink, #FF8FAB);
+  animation: envelope-beat 1.6s ease-in-out infinite;
+}
+
+/* ---------- Nhãn dán ---------- */
+
+.envelope__sticker {
+  position: absolute;
+  left: .7em;
+  bottom: -1.2em;
+  z-index: 6;
+  display: flex;
+  align-items: center;
+  gap: .35em;
+  max-width: calc(100% - 1.4em);
+  padding: .34em .85em .3em .7em;
+  border-radius: 999px;
+  background: var(--butter, #FFE9A8);
+  color: var(--berry, #5B2A3C);
+  font-size: max(12px, .82em);
+  line-height: 1.25;
+  white-space: nowrap;
+  box-shadow: 0 .2em 0 rgba(91, 42, 60, .2);
+  transform: rotate(-5deg);
+}
+
+.envelope__sticker svg {
+  flex: none;
+  width: 1em;
+  height: 1em;
+  color: var(--rose, #E8638C);
+}
+
+.envelope__sticker-text {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ---------- Dấu sáp ---------- */
+
+.envelope__seal {
+  position: absolute;
+  top: 4.2em;
+  left: 50%;
+  z-index: 5;
+  width: 4.8em;
+  height: 4.8em;
+  margin-left: -2.4em;
+}
+
+/* Dấu sáp nhịp nhẹ để mời chạm */
+.envelope.is-in .envelope__seal {
+  animation: envelope-beat 1.5s ease-in-out 1s infinite;
+}
+
+.envelope.is-opening .envelope__seal { animation: none; }
+
+@keyframes envelope-beat {
+  0%, 100% { transform: scale(1); }
+  30%      { transform: scale(1.13); }
+  55%      { transform: scale(.97); }
+}
+
+/* Vòng sáng lan ra quanh dấu sáp */
+.envelope__ping {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  border: .22em solid var(--rose, #E8638C);
+  border-radius: 50%;
+  opacity: 0;
+}
+
+.envelope.is-in .envelope__ping {
+  animation: envelope-ping 1.5s ease-out 1s infinite;
+}
+
+.envelope.is-opening .envelope__ping { animation: none; }
+
+@keyframes envelope-ping {
+  0%   { transform: scale(.8); opacity: .55; }
+  80%  { transform: scale(1.55); opacity: 0; }
+  100% { transform: scale(1.55); opacity: 0; }
+}
+
+.envelope__wax {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+}
+
+.envelope__wax svg {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+/* Hai nửa dấu sáp cắt theo đường nứt zíc zắc. Lúc còn nguyên thì giấu đi,
+   chỉ hiện bản liền để không lộ khe hở. */
+.envelope__wax--l,
+.envelope__wax--r { opacity: 0; }
+
+.envelope__wax--l {
+  -webkit-clip-path: polygon(-20% -20%, 50% -20%, 50% 0, 43% 20%, 57% 38%, 45% 58%, 56% 78%, 49% 100%, 49% 120%, -20% 120%);
+  clip-path: polygon(-20% -20%, 50% -20%, 50% 0, 43% 20%, 57% 38%, 45% 58%, 56% 78%, 49% 100%, 49% 120%, -20% 120%);
+}
+
+.envelope__wax--r {
+  -webkit-clip-path: polygon(50% -20%, 120% -20%, 120% 120%, 49% 120%, 49% 100%, 56% 78%, 45% 58%, 57% 38%, 43% 20%, 50% 0);
+  clip-path: polygon(50% -20%, 120% -20%, 120% 120%, 49% 120%, 49% 100%, 56% 78%, 45% 58%, 57% 38%, 43% 20%, 50% 0);
+}
+
+.envelope.is-opening .envelope__wax--full { opacity: 0; }
+
+.envelope.is-opening .envelope__wax--l {
+  animation: envelope-crack-l .58s cubic-bezier(.4, 0, .8, .6) both;
+}
+
+.envelope.is-opening .envelope__wax--r {
+  animation: envelope-crack-r .58s cubic-bezier(.4, 0, .8, .6) both;
+}
+
+/* Hai nửa bật nhẹ lên rồi văng sang hai bên, chỉ chúi xuống một chút (dưới 1,5em) và mờ dần
+   từ giữa chừng, để không quét ngang dòng "Gửi ..." nằm ngay dưới dấu sáp. */
+@keyframes envelope-crack-l {
+  0%   { transform: translate3d(0, 0, 0) rotate(0deg); opacity: 1; animation-timing-function: ease-out; }
+  22%  { transform: translate3d(-.6em, -.6em, 0) rotate(-12deg); opacity: 1; animation-timing-function: cubic-bezier(.3, .2, .6, 1); }
+  35%  { opacity: 1; animation-timing-function: cubic-bezier(.2, .6, .4, 1); }
+  100% { transform: translate3d(-5em, .9em, 0) rotate(-80deg); opacity: 0; }
+}
+
+@keyframes envelope-crack-r {
+  0%   { transform: translate3d(0, 0, 0) rotate(0deg); opacity: 1; animation-timing-function: ease-out; }
+  22%  { transform: translate3d(.6em, -.7em, 0) rotate(14deg); opacity: 1; animation-timing-function: cubic-bezier(.3, .2, .6, 1); }
+  35%  { opacity: 1; animation-timing-function: cubic-bezier(.2, .6, .4, 1); }
+  100% { transform: translate3d(5.2em, .6em, 0) rotate(90deg); opacity: 0; }
+}
+
+/* Tim và sao nhỏ bắn ra lúc dấu sáp nứt */
+.envelope__bit {
+  position: absolute;
+  top: 6em;
+  left: 50%;
+  z-index: 7;
+  width: 1.2em;
+  height: 1.2em;
+  margin-left: -.6em;
+  opacity: 0;
+}
+
+.envelope.is-opening .envelope__bit {
+  animation: envelope-bit .7s cubic-bezier(.2, .7, .3, 1) both;
+}
+
+@keyframes envelope-bit {
+  0%   { transform: translate3d(0, 0, 0) scale(.2) rotate(0deg); opacity: 1; }
+  60%  { opacity: 1; }
+  100% { transform: translate3d(var(--x, 0), var(--y, -4em), 0) scale(1.1) rotate(var(--r, 20deg)); opacity: 0; }
+}
+
+/* ---------- Lấp lánh quanh phong bì ---------- */
+
+.envelope__spark {
+  position: absolute;
+  width: 1.3em;
+  height: 1.3em;
+  color: var(--gold, #F6C453);
+  animation: envelope-twinkle 2.4s ease-in-out infinite;
+}
+
+.envelope__spark--a { top: -2.4em; left: 1.2em; }
+.envelope__spark--b { top: -1.9em; right: 2.6em; width: 1em; height: 1em; color: var(--pink, #FF8FAB); animation-delay: -.8s; animation-duration: 2.9s; }
+.envelope__spark--c { bottom: -2.2em; right: .4em; width: 1.15em; height: 1.15em; color: #B9A2F0; animation-delay: -1.6s; animation-duration: 3.2s; }
+
+@keyframes envelope-twinkle {
+  0%, 100% { transform: scale(.55) rotate(0deg); opacity: .35; }
+  50%      { transform: scale(1.1) rotate(18deg); opacity: 1; }
+}
+
+/* Vài đốm lấp lánh thưa ở góc màn hình, thay cho hạt bay nền đang bị lớp này che */
+.envelope__mote {
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  animation: envelope-twinkle 3s ease-in-out infinite;
+}
+
+.envelope__mote--a { top: 7%; left: 22%; color: #FFB3C6; }
+.envelope__mote--b { top: 12%; right: 7%; width: 14px; height: 14px; color: var(--gold, #F6C453); animation-delay: -1.1s; }
+.envelope__mote--c { bottom: 15%; left: 17%; width: 15px; height: 15px; color: #C9B6F5; animation-delay: -2s; }
+.envelope__mote--d { bottom: 9%; right: 13%; color: #8FD6B8; animation-delay: -.5s; animation-duration: 3.6s; }
+
+.envelope:not(.is-in) .envelope__mote { opacity: 0; }
+
+/* Lúc mở thư thì các đốm đứng yên, nhường sân cho dấu sáp và lá thư */
+.envelope.is-opening .envelope__mote,
+.envelope.is-opening .envelope__spark { animation-play-state: paused; }
+
+/* ---------- Dòng gợi ý ---------- */
+
+.envelope__hint {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: .45em;
+  max-width: 100%;
+  margin: 3.9em 0 0;
+  font-size: clamp(15px, 1.06em, 19px);
+  line-height: 1.3;
+  text-align: center;
+  color: var(--berry, #5B2A3C);
+}
+
+.envelope__hint[hidden] { display: none; }
+
+.envelope.is-in .envelope__hint {
+  animation: envelope-hint .5s ease .65s both;
+}
+
+@keyframes envelope-hint {
+  from { transform: translateY(.6em); opacity: 0; }
+  to   { transform: none; opacity: 1; }
+}
+
+.envelope__hand {
+  flex: none;
+  width: 1.7em;
+  height: 1.7em;
+  animation: envelope-nudge 1.3s ease-in-out infinite;
+}
+
+@keyframes envelope-nudge {
+  0%, 100% { transform: translateY(.12em) rotate(-8deg); }
+  45%      { transform: translateY(-.38em) rotate(-8deg) scale(.94); }
+  60%      { transform: translateY(-.3em) rotate(-8deg) scale(1); }
+}
+
+/* Đã chạm rồi thì gợi ý lặng lẽ biến mất */
+.envelope.is-opening .envelope__hint {
+  animation: envelope-hint-out .25s ease both;
+}
+
+@keyframes envelope-hint-out {
+  to { opacity: 0; }
+}
+
+/* ---------- Giảm chuyển động ----------
+   base.css đã tắt mọi animation. Ở đây chỉ còn lớp phong bì mờ đi thật nhanh. */
+
+.reduce-motion .envelope {
+  transition: opacity .2s linear;
+}
+
+.reduce-motion .envelope.is-leaving { transform: none; }
+
+.reduce-motion .envelope__btn { transition: none; }

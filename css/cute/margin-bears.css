@@ -1,0 +1,402 @@
+/* =====================================================================
+   margin-bears.css - đôi gấu tí hon ở lề dưới trang giấy
+
+   Mọi kích thước tính bằng em để lớn nhỏ theo trang sách.
+   Vị trí ngang lấy từ biến --t (0 = hai góc, 1 = sát hai bên số trang)
+   do margin-bears.js ghi lên từng phần tử .margin-bears.
+   Chỉ có transform và opacity chuyển động.
+   ===================================================================== */
+
+/* Số trang vốn trải hết chiều ngang trang. Thu nó lại vừa bằng dòng chữ
+   (vẫn nằm chính giữa như cũ) để chừa lề hai bên cho hai bạn gấu. */
+.margin-bears-page .page__num {
+  width: -webkit-fit-content;
+  width: -moz-fit-content;
+  width: fit-content;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Trang gặp nhau: đôi gấu và trái tim thế chỗ số trang */
+.margin-bears-page--meet .page__num { visibility: hidden; }
+
+/* Dải lề dưới: đúng bằng phần đệm dưới của trang (2.3em). Không bao giờ
+   bắt cú chạm, nên chạm vào lề vẫn lật trang như thường.
+   z-index: 0 để thứ tự chồng lớp bên trong (gấu, tim) không lọt ra ngoài trang. */
+.margin-bears {
+  position: absolute;
+  z-index: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 2.3em;
+  pointer-events: none;
+}
+
+/* Sách quá nhỏ (màn hình thấp): cất đôi gấu, trả số trang lại như cũ */
+.margin-bears-tiny .margin-bears { display: none; }
+.margin-bears-tiny .margin-bears-page--meet .page__num { visibility: visible; }
+
+/* Trang có nội dung chạm xuống tận lề dưới: đôi gấu của trang đó tạm lánh đi */
+.margin-bears--shy { opacity: 0; visibility: hidden; }
+.margin-bears-page--meet.margin-bears-page--shy .page__num { visibility: visible; }
+
+/* Một cái đầu gấu (khung vẽ 34 x 36): cằm tựa lên đường nét đứt,
+   chóp mũ không vượt khỏi dải lề nên không bao giờ đè lên nội dung. */
+.margin-bears__bear {
+  position: absolute;
+  bottom: .66em;
+  width: 1.462em;
+  height: 1.548em;
+  transform-origin: 50% 100%;
+}
+
+/* Gấu cử nhân đi từ góc trái vào, gấu nâu đi từ góc phải vào, tới khi còn
+   cách tâm trang 1.45em (vừa đủ chừa số trang). Khung nét đứt lệch: bên trái
+   chừa gáy sách (cạnh ở 1em, góc bo .5em), bên phải cạnh ở .6em nhưng góc bo tới 1em,
+   nên gấu nâu xuất phát từ 1.75em để cằm tựa lên đoạn nét đứt thẳng, không lên chỗ cong. */
+.margin-bears__bear--a { left: calc(1.55em + (50% - 4.462em) * var(--t, 0)); }
+.margin-bears__bear--b { right: calc(1.75em + (50% - 4.662em) * var(--t, 0)); }
+
+.margin-bears__svg {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  transform-origin: 50% 72%;
+  transition: transform .5s cubic-bezier(.34, 1.56, .64, 1);
+}
+
+/* Vệt gió sau lưng: ẩn, chỉ loé lên trong lúc nhảy */
+.margin-bears__zip {
+  position: absolute;
+  bottom: .3em;
+  width: .42em;
+  height: .5em;
+  color: var(--accent-ink);
+  opacity: 0;
+}
+
+.margin-bears__bear--a .margin-bears__zip { right: 100%; margin-right: .04em; }
+.margin-bears__bear--b .margin-bears__zip { left: 100%; margin-left: .04em; }
+
+/* Hai bạn chớp mắt lệch nhịp cho có hồn. Chỉ đôi ở trang đang đọc (margin-bears--awake)
+   mới chớp, để lúc nào cũng chỉ có vài phần tử chuyển động. */
+.margin-bears__eyes {
+  transform-box: fill-box;
+  transform-origin: 50% 50%;
+}
+
+.margin-bears--awake .margin-bears__eyes { animation: margin-bears-blink 5.2s infinite; }
+.margin-bears--awake .margin-bears__bear--b .margin-bears__eyes { animation-delay: -1.9s; }
+
+/* Hai trạng thái chung của cả cuốn sách (class trên <html>, do tính năng tassel và
+   diploma bật): gấu tí hon đổi y như đôi gấu lớn ngay phía trên, không thì nhìn lệch nhau.
+   Chỉ ẩn hiện (display), không có chuyển động: lúc trạng thái đổi, trang có đôi gấu tí
+   hon không nằm trước mắt người đọc. Tắt tính năng kia thì class không bao giờ xuất hiện. */
+.margin-bears__tassel--turned,
+.margin-bears__cap--later { display: none; }
+
+html.tassel-turned .margin-bears__tassel { display: none; }
+html.tassel-turned .margin-bears__tassel--turned { display: inline; }
+
+html.diploma-done .margin-bears__cap--later { display: inline; }
+html.diploma-done .margin-bears__clip { display: none; }
+
+.margin-bears__cheeks { opacity: .8; }
+.margin-bears__eyes-happy { opacity: 0; }
+
+/* Đổi giữa mắt mở và mắt cười cho mượt (chỉ là opacity) */
+.margin-bears__eyes,
+.margin-bears__eyes-happy { transition: opacity .15s ease; }
+
+/* ---------- Trang gặp nhau: chạm má, nghiêng đầu vào nhau ---------- */
+
+.margin-bears--meet .margin-bears__bear--a {
+  z-index: 1;
+  left: calc(50% - 1.432em);
+}
+
+.margin-bears--meet .margin-bears__bear--b { right: calc(50% - 1.432em); }
+
+/* Nút phía trên nằm sát chóp mũ: margin-bears.js ghi --mb-fit (0.86 .. 1) để cả cụm
+   (hai đầu, tim, lấp lánh) thu nhỏ một chút quanh chỗ cằm tựa lên nét đứt */
+.margin-bears--meet {
+  transform: scale(var(--mb-fit, 1));
+  transform-origin: 50% calc(100% - .66em);
+  transition: transform .4s cubic-bezier(.34, 1.4, .64, 1);
+}
+
+/* Nghiêng hình vẽ bên trong chứ không nghiêng khung, để cú nhảy vẫn thẳng đứng */
+.margin-bears--meet .margin-bears__bear--a .margin-bears__svg { transform: rotate(6deg); }
+.margin-bears--meet .margin-bears__bear--b .margin-bears__svg { transform: rotate(-6deg); }
+
+.margin-bears--meet .margin-bears__cheeks { opacity: 1; }
+
+/* Trái tim nép thấp vào khe giữa hai cái đầu (đỉnh tim thấp hơn chóp mũ, kể cả lúc
+   to lên sau khi đồng ý), để cả cụm gọn trong dải lề, không chạm gờ nút phía trên */
+.margin-bears__heart {
+  position: absolute;
+  z-index: 2;
+  left: 50%;
+  bottom: 1.18em;
+  width: .62em;
+  height: .62em;
+  margin-left: -.31em;
+  color: var(--rose);
+}
+
+.margin-bears__heart-in {
+  display: block;
+  width: 100%;
+  height: 100%;
+  transform-origin: 50% 80%;
+  transition: transform .5s cubic-bezier(.34, 1.56, .64, 1);
+}
+
+/* Viền màu giấy quanh trái tim để nó tách khỏi vành tai và chóp mũ phía sau */
+.margin-bears__heart svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  stroke: var(--paper);
+  stroke-width: 5;
+  stroke-linejoin: round;
+  paint-order: stroke fill;
+  transform-origin: 50% 70%;
+}
+
+.margin-bears--awake .margin-bears__heart svg {
+  animation: margin-bears-beat 1.1s ease-in-out infinite;
+}
+
+/* Hai đốm lấp lánh hai bên má, ngang tầm đầu (chỉ hiện sau khi đồng ý). Đặt ở hai bên
+   chứ không phía trên, vì phía trên là nút "Mình sẽ đến!" và bóng của nó. */
+.margin-bears__spark {
+  position: absolute;
+  bottom: .86em;
+  width: .74em;
+  height: .74em;
+  opacity: 0;
+  transform: scale(.3);
+  transition: opacity .3s ease .25s, transform .5s cubic-bezier(.34, 1.56, .64, 1) .25s;
+}
+
+.margin-bears__spark--l { left: calc(50% - 2.24em); color: var(--gold); }
+.margin-bears__spark--r { left: calc(50% + 1.5em); color: var(--pink); }
+
+/* Đốm nhỏ thứ hai, thấp hơn một chút, cho cụm lấp lánh có nhịp */
+.margin-bears__spark::after {
+  content: "";
+  position: absolute;
+  top: 88%;
+  width: 26%;
+  height: 26%;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: .8;
+}
+
+.margin-bears__spark--l::after { left: -18%; }
+.margin-bears__spark--r::after { right: -18%; }
+
+.margin-bears__spark svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* ---------- Sau khi người nhận đồng ý: phần thưởng chạm má ---------- */
+
+/* mắt cười tít */
+.margin-bears--happy .margin-bears__eyes { opacity: 0; }
+.margin-bears--happy .margin-bears__eyes-happy { opacity: 1; }
+
+/* nghiêng sát vào nhau hơn, má áp má */
+.margin-bears--happy.margin-bears--meet .margin-bears__bear--a .margin-bears__svg { transform: rotate(10deg); }
+.margin-bears--happy.margin-bears--meet .margin-bears__bear--b .margin-bears__svg { transform: rotate(-10deg); }
+
+/* trái tim to hơn một chút */
+.margin-bears--happy .margin-bears__heart-in { transform: scale(1.45); }
+
+/* hai đốm lấp lánh hiện ra */
+.margin-bears--happy .margin-bears__spark { opacity: 1; transform: none; }
+
+.margin-bears--happy.margin-bears--awake .margin-bears__spark svg {
+  animation: margin-bears-twinkle 2.4s ease-in-out infinite;
+}
+
+.margin-bears--happy.margin-bears--awake .margin-bears__spark--r svg { animation-delay: -1.2s; }
+
+/* ---------- Chuyển động ---------- */
+
+/* Trang vừa mở: mỗi bạn đứng ở chỗ cũ (trang trước), nhún, bật một vòng cung tới chỗ mới,
+   nghiêng về phía bạn kia, đáp xuống nảy nhẹ. Gấu nâu chậm hơn nửa nhịp cho giống hai bạn
+   chạy theo nhau. Quãng đường (--mb-step-a/-b) và độ cao (--mb-lift) do margin-bears.js đo. */
+.margin-bears--hop .margin-bears__bear--a {
+  animation: margin-bears-hop-a .7s cubic-bezier(.3, .6, .4, 1) both;
+}
+
+.margin-bears--hop .margin-bears__bear--b {
+  animation: margin-bears-hop-b .7s cubic-bezier(.3, .6, .4, 1) .1s both;
+}
+
+.margin-bears--hop .margin-bears__bear--a .margin-bears__zip {
+  animation: margin-bears-zip-a .7s ease-out both;
+}
+
+.margin-bears--hop .margin-bears__bear--b .margin-bears__zip {
+  animation: margin-bears-zip-b .7s ease-out .1s both;
+}
+
+/* Không đi đâu cả (trang đầu, lật ngược): không có vệt gió "chạy" phía sau */
+.margin-bears--still .margin-bears__zip { display: none; }
+
+/* Ăn mừng: nhảy hai cái liền */
+.margin-bears--joy .margin-bears__bear--a {
+  animation: margin-bears-hop-a .66s cubic-bezier(.3, .6, .4, 1) 2 both;
+}
+
+.margin-bears--joy .margin-bears__bear--b {
+  animation: margin-bears-hop-b .66s cubic-bezier(.3, .6, .4, 1) .12s 2 both;
+}
+
+/* Ngay phía trên có nội dung sát lề (chỗ trống không đủ cho cả cú bật thấp, xem
+   --mb-lift trong margin-bears.js): không bật lên, mà lướt sát mặt giấy tới chỗ mới,
+   người nghiêng về phía bạn kia rồi nhún "boing" khi tới nơi. */
+.margin-bears--low.margin-bears--hop .margin-bears__bear--a,
+.margin-bears--low.margin-bears--joy .margin-bears__bear--a { animation-name: margin-bears-boing-a; }
+.margin-bears--low.margin-bears--hop .margin-bears__bear--b,
+.margin-bears--low.margin-bears--joy .margin-bears__bear--b { animation-name: margin-bears-boing-b; }
+
+/* Trang gặp nhau sát nút "Mình sẽ đến!": hai bạn lướt vào rồi dụi má vào nhau (đầu
+   nghiêng hẳn về phía bạn kia rồi lắc nhẹ), đọc ra "thương nhau" rõ hơn một cú nhún */
+.margin-bears--meet.margin-bears--low.margin-bears--hop .margin-bears__bear--a,
+.margin-bears--meet.margin-bears--low.margin-bears--joy .margin-bears__bear--a { animation-name: margin-bears-nuzzle-a; }
+.margin-bears--meet.margin-bears--low.margin-bears--hop .margin-bears__bear--b,
+.margin-bears--meet.margin-bears--low.margin-bears--joy .margin-bears__bear--b { animation-name: margin-bears-nuzzle-b; }
+
+/* Trái tim nảy lên một nhịp to rồi đập đều trở lại (lúc hai bạn vừa tới nơi).
+   Lúc ăn mừng thì không: tim đã tự to lên x1.45 (margin-bears__heart-in), nảy thêm x1.5
+   nữa sẽ phồng gấp đôi và chạm vào nút ngay phía trên. */
+.margin-bears--hop .margin-bears__heart svg {
+  animation: margin-bears-pop .62s cubic-bezier(.34, 1.56, .64, 1) .3s both;
+}
+
+/* Mọi khung hình dùng cùng một dãy translate() rotate() scale() để trình duyệt nội suy mượt.
+   Gấu cử nhân xuất phát lệch trái một đoạn --mb-step-a, gấu nâu lệch phải --mb-step-b
+   (0 khi ăn mừng tại chỗ). Độ cao cú bật --mb-lift đo theo chỗ trống thật phía trên
+   (không có thì bật .62em, mức cao nhất). Nhịp nảy nhỏ lúc đáp bằng 1/6 cú bật. */
+@keyframes margin-bears-hop-a {
+  0%   { transform: translate(calc(var(--mb-step-a, 0em) * -1), 0) rotate(0) scale(1, 1); }
+  16%  { transform: translate(calc(var(--mb-step-a, 0em) * -1), 0) rotate(0) scale(1.18, .8); }
+  46%  { transform: translate(calc(var(--mb-step-a, 0em) * -.42), calc(var(--mb-lift, .62em) * -1)) rotate(8deg) scale(.92, 1.1); }
+  70%  { transform: translate(0, 0) rotate(0) scale(1.14, .86); }
+  84%  { transform: translate(0, calc(var(--mb-lift, .62em) * -.16)) rotate(0) scale(.97, 1.04); }
+  100% { transform: translate(0, 0) rotate(0) scale(1, 1); }
+}
+
+@keyframes margin-bears-hop-b {
+  0%   { transform: translate(var(--mb-step-b, 0em), 0) rotate(0) scale(1, 1); }
+  16%  { transform: translate(var(--mb-step-b, 0em), 0) rotate(0) scale(1.18, .8); }
+  46%  { transform: translate(calc(var(--mb-step-b, 0em) * .42), calc(var(--mb-lift, .62em) * -1)) rotate(-8deg) scale(.92, 1.1); }
+  70%  { transform: translate(0, 0) rotate(0) scale(1.14, .86); }
+  84%  { transform: translate(0, calc(var(--mb-lift, .62em) * -.16)) rotate(0) scale(.97, 1.04); }
+  100% { transform: translate(0, 0) rotate(0) scale(1, 1); }
+}
+
+/* Lướt rồi nhún: bẹp xuống lấy đà, lướt sát mặt giấy (nghiêng người về phía bạn kia,
+   không cao hơn chỗ đứng), tới nơi thì nảy "boing" */
+@keyframes margin-bears-boing-a {
+  0%   { transform: translate(calc(var(--mb-step-a, 0em) * -1), 0) rotate(0) scale(1, 1); }
+  18%  { transform: translate(calc(var(--mb-step-a, 0em) * -1), 0) rotate(0) scale(1.2, .78); }
+  50%  { transform: translate(calc(var(--mb-step-a, 0em) * -.3), 0) rotate(10deg) scale(1.02, .96); }
+  70%  { transform: translate(0, 0) rotate(-3deg) scale(1.16, .84); }
+  86%  { transform: translate(0, 0) rotate(0) scale(.96, 1.04); }
+  100% { transform: translate(0, 0) rotate(0) scale(1, 1); }
+}
+
+@keyframes margin-bears-boing-b {
+  0%   { transform: translate(var(--mb-step-b, 0em), 0) rotate(0) scale(1, 1); }
+  18%  { transform: translate(var(--mb-step-b, 0em), 0) rotate(0) scale(1.2, .78); }
+  50%  { transform: translate(calc(var(--mb-step-b, 0em) * .3), 0) rotate(-10deg) scale(1.02, .96); }
+  70%  { transform: translate(0, 0) rotate(3deg) scale(1.16, .84); }
+  86%  { transform: translate(0, 0) rotate(0) scale(.96, 1.04); }
+  100% { transform: translate(0, 0) rotate(0) scale(1, 1); }
+}
+
+/* Dụi má: lướt vào (nếu vừa tới), hai cái đầu nghiêng vào nhau, lắc hai nhịp rồi về chỗ */
+@keyframes margin-bears-nuzzle-a {
+  0%   { transform: translate(calc(var(--mb-step-a, 0em) * -1), 0) rotate(0) scale(1, 1); }
+  14%  { transform: translate(calc(var(--mb-step-a, 0em) * -1), 0) rotate(0) scale(1.12, .88); }
+  34%  { transform: translate(.08em, 0) rotate(13deg) scale(1, 1.02); }
+  52%  { transform: translate(.02em, 0) rotate(4deg) scale(1, 1); }
+  70%  { transform: translate(.08em, 0) rotate(12deg) scale(1, 1.02); }
+  100% { transform: translate(0, 0) rotate(0) scale(1, 1); }
+}
+
+@keyframes margin-bears-nuzzle-b {
+  0%   { transform: translate(var(--mb-step-b, 0em), 0) rotate(0) scale(1, 1); }
+  14%  { transform: translate(var(--mb-step-b, 0em), 0) rotate(0) scale(1.12, .88); }
+  34%  { transform: translate(-.08em, 0) rotate(-13deg) scale(1, 1.02); }
+  52%  { transform: translate(-.02em, 0) rotate(-4deg) scale(1, 1); }
+  70%  { transform: translate(-.08em, 0) rotate(-12deg) scale(1, 1.02); }
+  100% { transform: translate(0, 0) rotate(0) scale(1, 1); }
+}
+
+@keyframes margin-bears-zip-a {
+  0%   { opacity: 0; transform: translateX(.2em); }
+  18%  { opacity: .75; transform: translateX(0); }
+  60%  { opacity: .45; transform: translateX(-.08em); }
+  100% { opacity: 0; transform: translateX(-.14em); }
+}
+
+@keyframes margin-bears-zip-b {
+  0%   { opacity: 0; transform: translateX(-.2em); }
+  18%  { opacity: .75; transform: translateX(0); }
+  60%  { opacity: .45; transform: translateX(.08em); }
+  100% { opacity: 0; transform: translateX(.14em); }
+}
+
+@keyframes margin-bears-beat {
+  0%, 100% { transform: scale(1); }
+  30%      { transform: scale(1.18); }
+  55%      { transform: scale(.95); }
+}
+
+@keyframes margin-bears-pop {
+  0%   { transform: scale(1); }
+  45%  { transform: scale(1.5); }
+  100% { transform: scale(1); }
+}
+
+@keyframes margin-bears-blink {
+  0%, 92%, 100% { transform: scaleY(1); }
+  95%, 97%      { transform: scaleY(.12); }
+}
+
+@keyframes margin-bears-twinkle {
+  0%, 100% { transform: scale(1) rotate(0); opacity: 1; }
+  50%      { transform: scale(.7) rotate(25deg); opacity: .6; }
+}
+
+/* Giảm chuyển động: base.css đã tắt mọi animation; nhắc lại ở đây cho chắc
+   rằng đôi gấu đứng yên đúng chỗ, trái tim hiện sẵn, đổi trạng thái thì đổi ngay. */
+.reduce-motion .margin-bears__bear,
+.reduce-motion .margin-bears__eyes,
+.reduce-motion .margin-bears__zip,
+.reduce-motion .margin-bears__spark svg,
+.reduce-motion .margin-bears__heart svg {
+  animation: none !important;
+}
+
+.reduce-motion .margin-bears--meet,
+.reduce-motion .margin-bears__svg,
+.reduce-motion .margin-bears__heart-in,
+.reduce-motion .margin-bears__spark,
+.reduce-motion .margin-bears__eyes,
+.reduce-motion .margin-bears__eyes-happy {
+  transition: none !important;
+}

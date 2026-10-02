@@ -1,0 +1,362 @@
+/* =====================================================================
+   voice-note.css - tin nhắn thoại ở cuối trang lời mời
+
+   Mọi thứ ở đây chỉ áp dụng khi có phần tử .voice-note (tức là người gửi
+   đã có file ghi âm). Không có file thì trang giữ nguyên như cũ.
+
+   Trang lời mời là trang nhiều chữ nhất: tin nhắn thoại chỉ được cao hơn
+   hàng trang trí cũ một chút, nên mọi kích thước tính bằng em và được
+   ép sát. Trạng thái nằm ở class trên .page (trang bị nhân bản khi lật).
+   ===================================================================== */
+
+/* Đoạn thư cuối bớt khoảng trống bên dưới để nhường chỗ cho dòng chữ nhỏ */
+.page--letter.voice-note--on .letter > .text:last-child { margin-bottom: .3em; }
+
+/* Chiều cao "mong muốn" có thêm chút khoảng thở phía dưới (cách số trang).
+   Trang chật (điện thoại 320 px) thì khối tự co về đúng chiều cao nội dung
+   (flex-shrink) thay vì làm chữ cả trang nhỏ đi. */
+.voice-note {
+  /* Dùng flex-basis (không dùng height) để khối không bao giờ thấp hơn nội dung:
+     nhãn xuống hai dòng thì khối tự cao lên, không đè lên số trang */
+  flex: 0 1 calc(max(13px, .87em) * 1.15 + 2.95em);
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  margin-top: auto;           /* luôn nằm sát đáy trang như hàng trang trí cũ */
+  margin-bottom: -.2em;
+}
+
+/* Cả khối là MỘT nút: bấm vào chữ hay vào viên thuốc đều phát */
+.voice-note__btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: .14em;
+  /* Nút rộng vừa đủ nội dung: viên thuốc cố định 14.5em, còn dòng chữ được
+     dùng hết bề ngang trang (tên người gửi dài vẫn nằm gọn một dòng) */
+  width: auto;
+  min-width: 0;
+  max-width: 100%;
+  min-height: 44px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 1.1em;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: center;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.voice-note__btn:focus-visible {
+  outline: 3px solid var(--rose);
+  outline-offset: 3px;
+}
+
+/* Dòng chữ LUÔN một dòng: nếu xuống hai dòng thì khối cao thêm và lõi phải
+   thu nhỏ chữ cả bức thư (dưới 13 px ở máy 320 px). Câu quá dài thì cắt
+   bằng dấu "…", câu đầy đủ vẫn nằm trong aria-label của nút.
+   padding-top + margin-top âm: chừa chỗ cho dấu chồng (ễ, ỗ, ẫ) khỏi bị
+   overflow cắt mất mà không làm khối cao thêm chút nào. */
+.voice-note__label {
+  position: relative;
+  z-index: 1;               /* chữ luôn nằm trên tim, nốt nhạc bay lên */
+  display: block;
+  max-width: 100%;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  padding: .2em .1em 0;
+  margin: -.2em 0 0;
+  font-family: var(--font-head);
+  font-weight: 700;
+  font-size: max(13px, .87em);
+  line-height: 1.15;
+  color: var(--accent-ink);
+}
+
+.voice-note--error .voice-note__label { color: var(--berry); }
+
+.voice-note__row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: .42em;
+  width: 14.5em;
+  max-width: 100%;
+}
+
+/* ---------- Đầu bạn gấu đội mũ, cắt tròn ---------- */
+
+.voice-note__avatar {
+  position: relative;
+  z-index: 1;               /* tim, nốt nhạc ló ra từ SAU đầu bạn gấu */
+  flex: none;
+  width: 2.15em;
+  height: 2.15em;
+  border: 2px solid #fff;
+  border-radius: 50%;
+  overflow: hidden;
+  background: var(--butter);
+  box-shadow: 0 .16em 0 var(--accent-soft);
+}
+
+.voice-note__bear {
+  position: absolute;
+  inset: 0;
+  display: block;
+}
+
+/* Phóng to con gấu rồi đẩy lên để khung tròn chỉ còn cái đầu và chiếc mũ */
+.voice-note__bear .mascot {
+  position: absolute;
+  left: -22%;
+  top: -12%;
+  width: 144%;
+  height: auto;
+  max-width: none;
+  transform-origin: 50% 60%;
+}
+
+/* Trái tim, nốt nhạc, ngôi sao bay lên từ bạn gấu khi đang nói.
+   Chúng bay chéo ra khoảng trống bên trái bạn gấu (không về phía viên
+   thuốc), đủ to để nhìn ra là tim và nốt nhạc chứ không phải vết bẩn. */
+.voice-note__floats {
+  position: absolute;
+  left: .05em;
+  top: .05em;
+  width: 1em;
+  height: 1em;
+  pointer-events: none;
+}
+
+.voice-note__float {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 1em;
+  height: 1em;
+  color: var(--rose);
+  opacity: 0;
+}
+
+.voice-note__float--b {
+  left: .35em;
+  color: var(--accent);
+  width: 1.05em;
+  height: 1.05em;
+}
+
+.voice-note__float--c {
+  left: -.1em;
+  top: .45em;
+  color: var(--gold);
+  width: .85em;
+  height: .85em;
+}
+
+/* ---------- Viên thuốc tin nhắn ---------- */
+
+.voice-note__pill {
+  position: relative;
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: .42em;
+  height: 2.15em;
+  padding: 0 .55em 0 .24em;
+  border-radius: 999px;
+  background: #fff;
+  box-shadow: 0 0 0 2px var(--accent-soft), 0 .16em 0 2px var(--accent-soft);
+  transition: transform .14s ease;
+}
+
+/* Đuôi bong bóng chỉ về phía bạn gấu */
+.voice-note__pill::before {
+  content: "";
+  position: absolute;
+  left: -.22em;
+  top: 50%;
+  width: .55em;
+  height: .55em;
+  margin-top: -.275em;
+  border-radius: .1em 0 0 0;
+  background: #fff;
+  transform: rotate(-45deg);
+  box-shadow: -2px -2px 0 var(--accent-soft);
+}
+
+.voice-note__btn:active .voice-note__pill { transform: scale(.96); }
+
+.voice-note__play {
+  position: relative;
+  z-index: 1;
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 1.7em;
+  height: 1.7em;
+  border-radius: 50%;
+  background: var(--rose);
+  color: #fff;
+  box-shadow: 0 .1em 0 #C94C76;
+}
+
+.voice-note__ic {
+  grid-area: 1 / 1;
+  display: block;
+  width: .95em;
+  height: .95em;
+  transition: opacity .15s ease, transform .2s cubic-bezier(.34, 1.56, .64, 1);
+}
+
+/* Tam giác lệch phải một chút để nhìn cân giữa vòng tròn */
+.voice-note__ic--play { transform: translateX(.05em); }
+.voice-note__ic--pause { opacity: 0; transform: scale(.6); }
+
+.voice-note--playing .voice-note__ic--play { opacity: 0; transform: scale(.6); }
+.voice-note--playing .voice-note__ic--pause { opacity: 1; transform: none; }
+
+/* Sóng âm: các vạch đứng yên, chỉ nhảy khi đang phát */
+.voice-note__wave {
+  flex: 1 1 auto;
+  min-width: 0;
+  height: 1.3em;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .08em;
+  overflow: hidden;
+}
+
+.voice-note__bar {
+  flex: none;
+  display: block;
+  width: .19em;
+  height: 100%;
+  border-radius: .1em;
+  background: var(--accent);
+  transform: scaleY(var(--h, .5));
+}
+
+/* Phần đã nghe qua đổi sang màu hồng */
+.voice-note__bar--lit { background: var(--rose); }
+
+.voice-note--playing .voice-note__bar {
+  animation: voice-note-bar var(--t, .7s) ease-in-out var(--d, 0s) infinite alternate;
+}
+
+.voice-note__time {
+  flex: none;
+  min-width: 2.15em;
+  font-family: var(--font-head);
+  font-weight: 700;
+  font-size: max(13px, .87em);
+  line-height: 1;
+  text-align: center;
+  color: var(--accent-ink);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.voice-note__time--unknown { opacity: .55; }
+
+/* Trái tim "chưa nghe": nghe hết một lần là biến mất luôn */
+.voice-note__unread {
+  flex: none;
+  display: block;
+  width: .78em;
+  height: .78em;
+  margin-left: -.1em;
+  color: var(--rose);
+  animation: voice-note-beat 1.4s ease-in-out infinite;
+}
+
+.voice-note--played .voice-note__unread { display: none; }
+
+/* ---------- Khi đang phát ---------- */
+
+/* Mắt cười, bạn gấu lắc lư như đang nói */
+/* Mắt thường đang ẩn thì thôi chớp, tim "chưa nghe" thôi đập: người xem đang
+   nghe rồi, và giữ tổng số chuyển động của module dưới 20 */
+.voice-note--playing .voice-note__avatar .m-eye { opacity: 0; animation: none; }
+.voice-note--playing .voice-note__unread { animation: none; }
+.voice-note--playing .voice-note__avatar .m-eye-happy { opacity: 1; }
+
+.voice-note--playing .voice-note__bear .mascot {
+  animation: voice-note-talk .46s ease-in-out infinite alternate;
+}
+
+/* Ba nhịp lệch nhau (cách 1/3 vòng) để lúc nào cũng có một thứ đang bay */
+.voice-note--playing .voice-note__float--a { animation: voice-note-float-a 2.1s ease-out infinite; }
+.voice-note--playing .voice-note__float--b { animation: voice-note-float-b 2.1s ease-out -.7s infinite; }
+.voice-note--playing .voice-note__float--c { animation: voice-note-float-c 2.1s ease-out -1.4s infinite; }
+
+/* Đang tải file: nút phát nhấp nháy nhẹ */
+.voice-note--waiting .voice-note__play { animation: voice-note-wait .7s ease-in-out infinite alternate; }
+
+/* Không phát được: viên thuốc lắc đầu một cái */
+.voice-note--error .voice-note__pill { animation: voice-note-shake .45s ease-in-out; }
+
+@keyframes voice-note-bar {
+  from { transform: scaleY(.22); }
+  to   { transform: scaleY(var(--h, .8)); }
+}
+
+@keyframes voice-note-talk {
+  from { transform: rotate(-5deg) translateY(0); }
+  to   { transform: rotate(5deg) translateY(-3%); }
+}
+
+@keyframes voice-note-float-a {
+  0%   { transform: translate(0, .4em) scale(.4) rotate(0deg); opacity: 0; }
+  22%  { opacity: 1; }
+  70%  { opacity: .9; }
+  100% { transform: translate(-.95em, -1.3em) scale(1) rotate(-14deg); opacity: 0; }
+}
+
+@keyframes voice-note-float-b {
+  0%   { transform: translate(0, .4em) scale(.4) rotate(0deg); opacity: 0; }
+  22%  { opacity: 1; }
+  70%  { opacity: .9; }
+  100% { transform: translate(-.3em, -1.35em) scale(1) rotate(12deg); opacity: 0; }
+}
+
+@keyframes voice-note-float-c {
+  0%   { transform: translate(0, .3em) scale(.3) rotate(0deg); opacity: 0; }
+  25%  { opacity: 1; }
+  70%  { opacity: .9; }
+  100% { transform: translate(-1.35em, -.75em) scale(1) rotate(-40deg); opacity: 0; }
+}
+
+@keyframes voice-note-beat {
+  0%, 100% { transform: scale(1); }
+  30%      { transform: scale(1.25); }
+  55%      { transform: scale(.92); }
+}
+
+@keyframes voice-note-wait {
+  from { opacity: 1; }
+  to   { opacity: .5; }
+}
+
+@keyframes voice-note-shake {
+  0%, 100% { transform: translateX(0); }
+  20%      { transform: translateX(-.3em); }
+  45%      { transform: translateX(.26em); }
+  70%      { transform: translateX(-.14em); }
+}
+
+/* ---------- Giảm chuyển động: vạch đứng yên, chỉ thời gian chạy ---------- */
+
+.reduce-motion .voice-note__pill,
+.reduce-motion .voice-note__ic { transition: none; }
+
+.reduce-motion .voice-note--waiting .voice-note__play { opacity: .6; }

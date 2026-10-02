@@ -1,0 +1,135 @@
+/* =====================================================================
+   music-prompt.css - lời nhắn "thư có nhạc" lúc mới mở link.
+   Nằm trên cả phong bì (85), dưới lớp nhắc xoay dọc (90) và màn chờ (100).
+   ===================================================================== */
+
+.music-prompt {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 88;
+  display: grid;
+  place-items: center;
+  overflow-y: auto;            /* màn rất thấp: cuộn được cả lớp, không cắt mất nốt nhạc trên đầu thẻ */
+  padding: max(46px, env(safe-area-inset-top, 0px)) 16px max(16px, env(safe-area-inset-bottom, 0px));
+  background: rgba(91, 42, 60, .32);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity .3s ease, visibility 0s linear .3s;
+}
+
+.music-prompt.is-in {
+  opacity: 1;
+  visibility: visible;
+  transition: opacity .3s ease;
+}
+
+.music-prompt.is-leaving {
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity .3s ease, visibility 0s linear .3s;
+}
+
+.music-prompt__card {
+  position: relative;
+  width: min(100%, 340px);
+  padding: 44px 22px 16px;
+  border-radius: 28px;
+  background: var(--paper);
+  color: var(--cocoa);
+  text-align: center;
+  box-shadow: 0 6px 0 rgba(232, 99, 140, .25), 0 24px 40px -18px rgba(91, 42, 60, .5);
+  transform: translateY(18px) scale(.94);
+  transition: transform .45s cubic-bezier(.2, 1.4, .4, 1);
+}
+
+.music-prompt.is-in .music-prompt__card { transform: none; }
+
+/* Nốt nhạc tròn nhún nhảy trên đầu thẻ */
+.music-prompt__icon {
+  position: absolute;
+  top: -30px;
+  left: 50%;
+  width: 64px;
+  height: 64px;
+  margin-left: -32px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--pink);
+  box-shadow: 0 4px 0 var(--rose);
+  animation: music-prompt-bop 1.4s ease-in-out infinite;
+}
+
+.music-prompt__icon svg { width: 32px; height: 32px; fill: #fff; }
+
+@keyframes music-prompt-bop {
+  0%, 100% { transform: translateY(0) rotate(-6deg); }
+  50%      { transform: translateY(-6px) rotate(6deg); }
+}
+
+.music-prompt__title {
+  margin: 0 0 6px;
+  font-family: var(--font-head);
+  font-size: 23px;
+  line-height: 1.2;
+  color: var(--rose-ink, var(--rose));
+}
+
+.music-prompt__text {
+  margin: 0 0 12px;
+  font-size: 16px;
+  line-height: 1.45;
+}
+
+.music-prompt__tips {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.music-prompt__tip {
+  padding: 5px 11px;
+  border-radius: 999px;
+  background: var(--lav);
+  color: #3A2870;
+  font: 700 13px/1.25 var(--font-head);
+  white-space: nowrap;
+}
+
+.music-prompt__yes { width: 100%; }
+
+.music-prompt__later {
+  display: block;
+  margin: 6px auto 0;
+  min-height: 44px;
+  padding: 0 16px;
+  border: 0;
+  background: none;
+  color: var(--cocoa);
+  font: 600 15px/1 var(--font-body);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.music-prompt__later:focus-visible,
+.music-prompt__yes:focus-visible {
+  outline: 3px solid var(--rose);
+  outline-offset: 3px;
+}
+
+/* Màn thấp: gọn lại cho vừa */
+@media (max-height: 520px) {
+  .music-prompt__card { padding-top: 36px; }
+  .music-prompt__title { font-size: 20px; }
+  .music-prompt__text { font-size: 15px; margin-bottom: 8px; }
+  .music-prompt__tips { margin-bottom: 10px; }
+}
+
+.reduce-motion .music-prompt__card { transform: none; transition: none; }

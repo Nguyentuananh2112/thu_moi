@@ -1,0 +1,568 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Thư mời dự Lễ tốt nghiệp</title>
+<meta name="description" content="Có một lá thư nhỏ đang chờ được mở. Chạm vào để đọc nhé!">
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#FFD6E0">
+
+<!-- Khung xem trước khi gửi link qua Zalo / Messenger (ảnh + tiêu đề).
+     SAU KHI ĐƯA TRANG LÊN MẠNG: ở 2 dòng og:url và og:image bên dưới, thay TEN-TRANG-CUA-BAN.example
+     bằng đúng địa chỉ trang của bạn (ví dụ be-meo-tot-nghiep.netlify.app),
+     giữ nguyên phần https:// ở đầu và /assets/og-image.png ở cuối.
+     (Đuôi .example là tên miền dành riêng để làm mẫu, không ai mua được, nên chưa sửa thì
+     link cũng không bao giờ trỏ nhầm sang trang của người lạ.) -->
+<meta property="og:type" content="website">
+<meta property="og:locale" content="vi_VN">
+<meta property="og:title" content="Thư mời dự Lễ tốt nghiệp">
+<meta property="og:description" content="Có một lá thư nhỏ đang chờ được mở. Chạm vào để đọc nhé!">
+<meta property="og:url" content="https://TEN-TRANG-CUA-BAN.example/">
+<meta property="og:image" content="https://TEN-TRANG-CUA-BAN.example/assets/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="alternate icon" href="assets/favicon-32.png" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+
+<!-- Font nằm sẵn trong assets/fonts (khai báo ở css/fonts.css), không tải từ máy chủ ngoài -->
+<link rel="stylesheet" href="css/fonts.css">
+
+<link rel="stylesheet" href="css/base.css">
+<link rel="stylesheet" href="css/book.css">
+<link rel="stylesheet" href="css/animations.css">
+<!-- Tính năng phụ: mỗi tính năng một file trong css/cute và js/cute. Bật tắt trong config.js, mục "features". -->
+<link rel="stylesheet" href="css/cute/envelope.css">
+<link rel="stylesheet" href="css/cute/greeting-play.css">
+<link rel="stylesheet" href="css/cute/photo-stack.css">
+<link rel="stylesheet" href="css/cute/sealed-letter.css">
+<link rel="stylesheet" href="css/cute/voice-note.css">
+<link rel="stylesheet" href="css/cute/star-jar.css">
+<link rel="stylesheet" href="css/cute/love-race.css">
+<link rel="stylesheet" href="css/cute/diploma.css">
+<link rel="stylesheet" href="css/cute/puppy-eyes.css">
+<link rel="stylesheet" href="css/cute/pinky-promise.css">
+<link rel="stylesheet" href="css/cute/ticket.css">
+<link rel="stylesheet" href="css/cute/margin-bears.css">
+<link rel="stylesheet" href="css/cute/tassel.css">
+<link rel="stylesheet" href="css/cute/music-prompt.css">
+
+<script>
+/* Bật chế độ giảm chuyển động thật sớm để không bị nháy. Thử bằng ?motion=reduce */
+(function () {
+  try {
+    var q = new URLSearchParams(location.search).get('motion');
+    var sys = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (q === 'reduce' || (sys && q !== 'full')) document.documentElement.classList.add('reduce-motion');
+  } catch (e) {}
+})();
+</script>
+
+<script>
+/* "Người canh" chạy trước mọi file khác, để lá thư không bao giờ kẹt mãi ở màn chờ:
+   - config.js gõ lỗi (thiếu dấu phẩy, dấu ' trong chữ...): hiện bảng báo lỗi kèm số dòng cho người gửi.
+   - Một file của trang không tải được (mạng chập chờn): tải lại trang một lần;
+     vẫn không được thì cứ mở các trang ra (vuốt ngang) thay vì để màn chờ quay mãi. */
+(function () {
+  var Invite = window.Invite = window.Invite || {};
+  var failed = Invite.failedFiles = [];   /* main.js đọc để bỏ qua tính năng mất file kiểu */
+  var configError = null;
+
+  window.addEventListener('error', function (e) {
+    var t = e && e.target;
+    if (t && t !== window && (t.tagName === 'SCRIPT' || t.tagName === 'LINK')) {
+      failed.push(t.getAttribute('src') || t.getAttribute('href') || '');
+      return;
+    }
+    var file = (e && e.filename) || '';
+    if (!configError && /config\.js([?#]|$)/.test(file)) {
+      configError = { line: e.lineno || 0, message: String(e.message || '') };
+    }
+  }, true);
+
+  function el(tag, css, text) {
+    var n = document.createElement(tag);
+    if (css) n.style.cssText = css;
+    if (text) n.textContent = text;
+    return n;
+  }
+
+  /* Bảng báo lỗi cho người gửi. main.js cũng gọi hàm này. */
+  Invite.showConfigError = function () {
+    if (!document.body || document.querySelector('.config-error')) return;
+    var loader = document.getElementById('loader');
+    if (loader && loader.parentNode) loader.parentNode.removeChild(loader);
+
+    var notLoaded = !configError && failed.join(' ').indexOf('config.js') !== -1;
+    var box = el('div', 'position:fixed;top:0;right:0;bottom:0;left:0;z-index:110;overflow-y:auto;' +
+      '-webkit-overflow-scrolling:touch;display:flex;align-items:flex-start;justify-content:center;' +
+      'padding:calc(env(safe-area-inset-top, 0px) + 24px) 16px 32px;box-sizing:border-box;' +
+      'background:#FFF8F0 linear-gradient(160deg, #FFD6E0, #FFF8F0 55%, #E4D7FF);');
+    box.className = 'config-error';
+    box.setAttribute('role', 'alert');
+    var card = el('div', 'width:100%;max-width:420px;box-sizing:border-box;margin:auto 0;padding:22px 20px;' +
+      'background:#FFFDF9;border:2px solid #FF8FAB;border-radius:22px;box-shadow:0 10px 30px rgba(91,42,60,.15);' +
+      'font:500 16px/1.5 "Quicksand","Baloo 2",system-ui,sans-serif;color:#5B4A4A;');
+    var head = 'font-family:"Baloo 2","Quicksand",system-ui,sans-serif;font-weight:700;';
+    var NS = 'http://www.w3.org/2000/svg';
+    var heart = document.createElementNS(NS, 'svg');
+    var use = document.createElementNS(NS, 'use');
+    heart.setAttribute('aria-hidden', 'true');
+    heart.setAttribute('focusable', 'false');
+    heart.style.cssText = 'display:block;width:40px;height:40px;margin:0 0 6px;color:#FF8FAB;';
+    use.setAttribute('href', '#i-heart');
+    heart.appendChild(use);
+    card.appendChild(heart);
+    card.appendChild(el('h1', head + 'margin:0 0 8px;font-size:22px;line-height:1.25;color:#E8638C;',
+      'Ối, lá thư chưa mở được'));
+
+    if (notLoaded) {
+      card.appendChild(el('p', 'margin:0 0 12px;', 'Trang không tải được file config.js. ' +
+        'Kiểm tra xem file config.js đã được đưa lên cùng chỗ với index.html chưa, rồi tải lại trang.'));
+    } else {
+      card.appendChild(el('p', 'margin:0 0 12px;', 'File config.js đang có một lỗi gõ nhỏ nên trang chưa đọc được lời thư. ' +
+        'Mở config.js và sửa chỗ được chỉ dưới đây.'));
+      if (configError && configError.line) {
+        card.appendChild(el('p', head + 'margin:0 0 12px;padding:10px 14px;border-radius:14px;' +
+          'background:#FFE9A8;color:#5B2A3C;font-size:18px;',
+          'Lỗi ở dòng ' + configError.line + ' (hoặc ngay dòng phía trên)'));
+      }
+      card.appendChild(el('p', head + 'margin:0 0 4px;font-size:16px;color:#5B2A3C;', 'Lỗi hay gặp:'));
+      var ul = el('ul', 'margin:0 0 12px;padding-left:20px;');
+      [
+        'Thiếu dấu phẩy , ở cuối dòng phía trên.',
+        "Dấu ' nằm trong chữ, ví dụ 'Baby's'. Sửa thành 'Baby\\'s', hoặc bọc cả câu bằng ngoặc kép: \"Baby's\".",
+        "Thiếu dấu ' mở hoặc đóng ở đầu, cuối một câu."
+      ].forEach(function (t) { ul.appendChild(el('li', 'margin:0 0 4px;', t)); });
+      card.appendChild(ul);
+      card.appendChild(el('p', 'margin:0 0 14px;', 'Sửa xong thì lưu file, rồi tải lại trang này.'));
+      if (configError && configError.message) {
+        card.appendChild(el('p', 'margin:0 0 14px;font-size:13px;color:#7A6666;word-break:break-word;',
+          'Trình duyệt báo: ' + configError.message));
+      }
+    }
+
+    var btn = el('button', head + 'display:block;width:100%;min-height:48px;border:0;border-radius:999px;' +
+      'background:#FF8FAB;color:#5B2A3C;font-size:17px;cursor:pointer;', 'Tải lại trang');
+    btn.type = 'button';
+    btn.addEventListener('click', function () { location.reload(); });
+    card.appendChild(btn);
+    box.appendChild(card);
+    document.body.appendChild(box);
+  };
+
+  function stuck() {
+    var loader = document.getElementById('loader');
+    return !!(loader && !loader.classList.contains('is-done'));
+  }
+
+  /* Không chờ được main.js nữa: tự mở các trang ra ở chế độ vuốt ngang */
+  function reveal() {
+    var book = document.getElementById('book');
+    var loader = document.getElementById('loader');
+    if (book) {
+      if (!book.classList.contains('stf__parent')) book.classList.add('no-flip');
+      var pages = book.querySelectorAll('.page');
+      for (var i = 0; i < pages.length; i++) pages[i].classList.add('is-seen');
+      if (!document.querySelector('[data-bound]')) fillNames(book);
+      if (Invite.effects && Invite.effects.mountMascots) {
+        try { Invite.effects.mountMascots(document); } catch (e) {}
+      }
+      if (!Invite.book) {
+        var step = function (dir) {
+          return function () { book.scrollBy ? book.scrollBy({ left: dir * book.clientWidth, behavior: 'smooth' }) : (book.scrollLeft += dir * book.clientWidth); };
+        };
+        var prev = document.getElementById('btn-prev');
+        var next = document.getElementById('btn-next');
+        if (prev) prev.addEventListener('click', step(-1));
+        if (next) next.addEventListener('click', step(1));
+      }
+    }
+    if (loader) {
+      loader.classList.add('is-done');
+      setTimeout(function () { if (loader.parentNode) loader.parentNode.removeChild(loader); }, 800);
+    }
+  }
+
+  /* main.js không chạy nên chữ {to}, {from} chưa được thay: thay tạm bằng tên trong config */
+  function fillNames(scope) {
+    var c = window.INVITE_CONFIG || {};
+    var to = (c.recipient && c.recipient.name) || 'bạn';
+    var from = (c.sender && c.sender.name) || '';
+    try {
+      var q = new URLSearchParams(location.search).get('to');
+      if (q && q.trim()) to = q.trim().slice(0, 30);
+    } catch (e) {}
+    if (!document.createTreeWalker) return;
+    var walk = document.createTreeWalker(scope, 4, null, false);
+    var node;
+    while ((node = walk.nextNode())) {
+      if (node.nodeValue.indexOf('{') !== -1) {
+        node.nodeValue = node.nodeValue.split('{to}').join(to).split('{from}').join(from);
+      }
+    }
+  }
+
+  function rescue() {
+    if (!window.INVITE_CONFIG) { Invite.showConfigError(); return; }
+    if (!stuck()) return;
+    var tried = true;
+    try { tried = sessionStorage.getItem('invite:reloaded') === '1'; } catch (e) {}
+    if (failed.length && !tried) {
+      try {
+        sessionStorage.setItem('invite:reloaded', '1');
+        location.reload();
+        return;
+      } catch (e) {}
+    }
+    reveal();
+  }
+
+  document.addEventListener('DOMContentLoaded', function () {
+    /* Lúc này main.js đã chạy xong phần dựng sách. Đã có sách thì main.js tự tắt màn chờ
+       (tối đa 2,5 giây), chỉ can thiệp khi quá lâu; chưa có sách thì cứu sớm. */
+    if (!window.INVITE_CONFIG) { Invite.showConfigError(); return; }
+    setTimeout(function () {
+      if (!stuck()) return;
+      if (Invite.book) setTimeout(rescue, 6000);
+      else rescue();
+    }, Invite.book ? 6000 : 2500);
+  });
+})();
+</script>
+
+<!-- Hai thư viện (lật trang, pháo giấy) được chép sẵn vào js/vendor để trang không phụ thuộc mạng ngoài.
+     Giấy phép MIT và ISC nằm cùng thư mục. -->
+<script defer src="js/vendor/page-flip.browser.js"></script>
+<script defer src="js/vendor/confetti.browser.min.js"></script>
+<script defer src="config.js"></script>
+<script defer src="js/audio.js"></script>
+<script defer src="js/effects.js"></script>
+<script defer src="js/book.js"></script>
+<script defer src="js/overlay.js"></script>
+<script defer src="js/cute/envelope.js"></script>
+<script defer src="js/cute/greeting-play.js"></script>
+<script defer src="js/cute/photo-stack.js"></script>
+<script defer src="js/cute/sealed-letter.js"></script>
+<script defer src="js/cute/voice-note.js"></script>
+<script defer src="js/cute/star-jar.js"></script>
+<script defer src="js/cute/love-race.js"></script>
+<script defer src="js/cute/diploma.js"></script>
+<script defer src="js/cute/puppy-eyes.js"></script>
+<script defer src="js/cute/pinky-promise.js"></script>
+<script defer src="js/cute/ticket.js"></script>
+<script defer src="js/cute/margin-bears.js"></script>
+<script defer src="js/cute/tassel.js"></script>
+<script defer src="js/cute/music-prompt.js"></script>
+<script defer src="js/main.js"></script>
+</head>
+<body>
+
+<!-- Bộ icon dùng chung -->
+<svg class="sprite" aria-hidden="true" focusable="false">
+  <symbol id="i-heart" viewBox="0 0 24 24"><path fill="currentColor" d="M12 21.2c-.4 0-.8-.1-1.1-.4C6.1 17 2 13.4 2 8.9 2 6 4.2 3.8 7 3.8c1.9 0 3.6 1 5 2.9 1.4-1.9 3.1-2.9 5-2.9 2.8 0 5 2.2 5 5.1 0 4.5-4.1 8.1-8.9 11.9-.3.3-.7.4-1.1.4z"/></symbol>
+  <symbol id="i-star" viewBox="0 0 24 24"><path fill="currentColor" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" d="M12 3.2l2.6 5.5 6 .8-4.4 4.2 1.1 6L12 16.8l-5.3 2.9 1.1-6-4.4-4.2 6-.8z"/></symbol>
+  <symbol id="i-sparkle" viewBox="0 0 24 24"><path fill="currentColor" d="M12 3.5c.7 5.2 3.3 7.8 8.5 8.5-5.2.7-7.8 3.3-8.5 8.5-.7-5.2-3.3-7.8-8.5-8.5 5.2-.7 7.8-3.3 8.5-8.5z"/></symbol>
+  <symbol id="i-paw" viewBox="0 0 24 24"><g fill="currentColor"><path d="M12 12.4c-3.2 0-5.8 2.6-5.8 5.2 0 1.8 1.5 2.9 3.2 2.9 1 0 1.8-.4 2.6-.4s1.6.4 2.6.4c1.7 0 3.2-1.1 3.2-2.9 0-2.6-2.6-5.2-5.8-5.2z"/><ellipse cx="5.2" cy="10.3" rx="2" ry="2.6"/><ellipse cx="9.3" cy="6.2" rx="2" ry="2.7"/><ellipse cx="14.7" cy="6.2" rx="2" ry="2.7"/><ellipse cx="18.8" cy="10.3" rx="2" ry="2.6"/></g></symbol>
+  <symbol id="i-bow" viewBox="0 0 56 36">
+    <path fill="#D9537E" d="M24 20l-8 14 7-3 3 4 4-13zM32 20l8 14-7-3-3 4-4-13z"/>
+    <path fill="#E8638C" d="M27 17C19 5 7 3 5 11.5S13 26 27 19zM29 17C37 5 49 3 51 11.5S43 26 29 19z"/>
+    <rect x="23.5" y="12" width="9" height="11" rx="4" fill="#F58AA8"/>
+  </symbol>
+  <symbol id="i-cap" viewBox="0 0 48 40">
+    <path fill="#5E5270" d="M12 20v8.5c0 3.3 5.4 6 12 6s12-2.7 12-6V20l-12 5.5z"/>
+    <path fill="#4A3F55" stroke="#4A3F55" stroke-width="2.5" stroke-linejoin="round" d="M24 5l21 9.5-21 9.5-21-9.5z"/>
+    <path fill="none" stroke="#F6C453" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M24 14.5l16 2v10"/>
+    <circle cx="40" cy="28.5" r="2.6" fill="#F6C453"/>
+  </symbol>
+  <symbol id="i-calendar" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="15.5" rx="4"/><path d="M3.5 10h17M8 3v4M16 3v4"/></g><path fill="currentColor" d="M12 17.6s-2.9-1.8-2.9-3.7c0-1 .8-1.7 1.6-1.7.5 0 1 .3 1.3.8.3-.5.8-.8 1.3-.8.8 0 1.6.7 1.6 1.7 0 1.9-2.9 3.7-2.9 3.7z"/></symbol>
+  <symbol id="i-cal-plus" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="15.5" rx="4"/><path d="M3.5 10h17M8 3v4M16 3v4M12 12.8v5M9.5 15.3h5"/></g></symbol>
+  <symbol id="i-clock" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></g></symbol>
+  <symbol id="i-pin" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-6.5-5.6-6.5-10.4A6.5 6.5 0 0 1 12 4a6.5 6.5 0 0 1 6.5 6.6C18.5 15.4 12 21 12 21z"/><circle cx="12" cy="10.5" r="2.3"/></g></symbol>
+  <symbol id="i-arrow-left" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" d="M14.5 5.5L8 12l6.5 6.5"/></symbol>
+  <symbol id="i-arrow-right" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" d="M9.5 5.5L16 12l-6.5 6.5"/></symbol>
+  <symbol id="i-sound-on" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" d="M9 17.5V6.2l10-2v11.3"/><circle cx="6.6" cy="17.5" r="2.6" fill="currentColor"/><circle cx="16.6" cy="15.5" r="2.6" fill="currentColor"/></symbol>
+  <symbol id="i-sound-off" viewBox="0 0 24 24"><g opacity=".45"><path fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" d="M9 17.5V6.2l10-2v11.3"/><circle cx="6.6" cy="17.5" r="2.6" fill="currentColor"/><circle cx="16.6" cy="15.5" r="2.6" fill="currentColor"/></g><path fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" d="M4 4l16 16"/></symbol>
+  <symbol id="i-close" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" d="M6.5 6.5l11 11M17.5 6.5l-11 11"/></symbol>
+  <symbol id="i-replay" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" d="M5.2 13a7 7 0 1 0 2-5.6M5 4.6v3.9h3.9"/></symbol>
+  <symbol id="i-hand" viewBox="0 0 32 32"><path fill="#fff" stroke="#5B2A3C" stroke-width="2" stroke-linejoin="round" d="M13 16V6.5a3 3 0 0 1 6 0V14l4.6 1.1a3.5 3.5 0 0 1 2.6 4l-.9 5.2A5.5 5.5 0 0 1 19.9 29h-3.6a6 6 0 0 1-4.8-2.4l-4.2-5.7a2.4 2.4 0 0 1 3.6-3.1z"/></symbol>
+</svg>
+
+<!-- Linh vật gấu. Các biến thể bật bằng class:
+     wave (vẫy tay), balloon (cầm bóng bay tim), love (tim trên bụng), choco (bạn gấu nâu, không đội mũ) -->
+<template id="tpl-mascot">
+  <svg class="mascot" viewBox="0 0 200 244" preserveAspectRatio="xMidYMax meet" aria-hidden="true" focusable="false">
+    <g class="m-balloon">
+      <path d="M-14 95C-10 132 30 152 46 188" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round"/>
+      <path d="M-14.4 92l-5 7h10z" fill="#E8638C"/>
+      <path transform="translate(-48 34) scale(2.8)" fill="#FF6F96" d="M12 21.2c-.4 0-.8-.1-1.1-.4C6.1 17 2 13.4 2 8.9 2 6 4.2 3.8 7 3.8c1.9 0 3.6 1 5 2.9 1.4-1.9 3.1-2.9 5-2.9 2.8 0 5 2.2 5 5.1 0 4.5-4.1 8.1-8.9 11.9-.3.3-.7.4-1.1.4z"/>
+      <ellipse cx="-29" cy="56" rx="5.5" ry="8.5" transform="rotate(-32 -29 56)" fill="#fff" opacity=".55"/>
+    </g>
+    <g class="m-body">
+      <ellipse class="f-body" cx="100" cy="190" rx="54" ry="44" fill="#E9BC93"/>
+      <ellipse class="f-muzzle" cx="100" cy="198" rx="31" ry="29" fill="#FFF3E4"/>
+      <ellipse class="f-limb" cx="66" cy="227" rx="22" ry="13" fill="#E0AE84"/><ellipse cx="66" cy="228.5" rx="10" ry="6" fill="#FFC9D4"/>
+      <ellipse class="f-limb" cx="134" cy="227" rx="22" ry="13" fill="#E0AE84"/><ellipse cx="134" cy="228.5" rx="10" ry="6" fill="#FFC9D4"/>
+      <ellipse class="f-limb m-arm-l" cx="50" cy="176" rx="13" ry="23" transform="rotate(20 50 176)" fill="#E0AE84"/>
+      <path class="m-heart" fill="#FF8FAB" d="M100 204c-.5 0-1-.2-1.4-.5-6.2-4.9-11.6-9.6-11.6-15.4 0-3.8 2.9-6.6 6.5-6.6 2.5 0 4.7 1.3 6.5 3.8 1.8-2.5 4-3.8 6.5-3.8 3.6 0 6.5 2.8 6.5 6.6 0 5.8-5.4 10.5-11.6 15.4-.4.3-.9.5-1.4.5z"/>
+    </g>
+    <g class="m-head">
+      <g class="m-ear m-ear--l"><circle class="f-body" cx="46" cy="64" r="23" fill="#E9BC93"/><circle cx="46" cy="64" r="11.5" fill="#FFC9D4"/></g>
+      <g class="m-ear m-ear--r"><circle class="f-body" cx="154" cy="64" r="23" fill="#E9BC93"/><circle cx="154" cy="64" r="11.5" fill="#FFC9D4"/></g>
+      <ellipse class="f-head" cx="100" cy="106" rx="69" ry="58" fill="#F1CBA5"/>
+      <ellipse class="m-cheek" cx="53" cy="127" rx="12" ry="7.5" fill="#FF9FB5" opacity=".75"/>
+      <ellipse class="m-cheek" cx="147" cy="127" rx="12" ry="7.5" fill="#FF9FB5" opacity=".75"/>
+      <g class="m-eye"><circle cx="73" cy="110" r="7.8" fill="#43384C"/><circle cx="70.6" cy="107.4" r="2.7" fill="#fff"/><circle cx="75.6" cy="112.4" r="1.2" fill="#fff"/></g>
+      <g class="m-eye"><circle cx="127" cy="110" r="7.8" fill="#43384C"/><circle cx="124.6" cy="107.4" r="2.7" fill="#fff"/><circle cx="129.6" cy="112.4" r="1.2" fill="#fff"/></g>
+      <g class="m-eye-happy"><path d="M65.5 112q7.5-10 15 0M119.5 112q7.5-10 15 0" fill="none" stroke="#43384C" stroke-width="3.4" stroke-linecap="round"/></g>
+      <ellipse class="f-muzzle" cx="100" cy="129" rx="22" ry="16" fill="#FFF3E4"/>
+      <ellipse class="m-nose" cx="100" cy="122" rx="6.5" ry="4.6" fill="#5B4A4A"/>
+      <path class="m-mouth" d="M100 126.5v4m0 0c-2.8 5-9 5-11.5 1m11.5-1c2.8 5 9 5 11.5 1" fill="none" stroke="#5B4A4A" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+    </g>
+    <g class="m-arm-r">
+      <ellipse class="f-limb" cx="150" cy="176" rx="13" ry="23" transform="rotate(-20 150 176)" fill="#E0AE84"/>
+      <ellipse cx="155.5" cy="190" rx="6" ry="7.5" transform="rotate(-20 155.5 190)" fill="#FFC9D4"/>
+    </g>
+    <g class="m-cap">
+      <path d="M58 60c27-13 57-13 84 0v15c-27-11-57-11-84 0z" fill="#5E5270"/>
+      <path d="M100 23l80 22-80 22-80-22z" fill="#4A3F55" stroke="#4A3F55" stroke-width="5" stroke-linejoin="round"/>
+      <path d="M100 30l54 15-54 15-54-15z" fill="#5E5270" opacity=".55"/>
+      <g class="m-tassel">
+        <path d="M100 45l58 4v25" fill="none" stroke="#F6C453" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/>
+        <rect x="152.5" y="72" width="11" height="17" rx="3.5" fill="#F6C453"/>
+      </g>
+      <circle cx="100" cy="45" r="5" fill="#F6C453"/>
+    </g>
+    <g class="m-clip">
+      <path transform="translate(124 30) rotate(16 18 18) scale(1.5)" fill="#FF6F96" d="M12 21.2c-.4 0-.8-.1-1.1-.4C6.1 17 2 13.4 2 8.9 2 6 4.2 3.8 7 3.8c1.9 0 3.6 1 5 2.9 1.4-1.9 3.1-2.9 5-2.9 2.8 0 5 2.2 5 5.1 0 4.5-4.1 8.1-8.9 11.9-.3.3-.7.4-1.1.4z"/>
+    </g>
+  </svg>
+</template>
+
+<!-- Màn chờ -->
+<div class="loader" id="loader" role="status" aria-live="polite">
+  <div class="loader__box">
+    <span class="loader__bear" data-mascot="balloon"></span>
+    <span class="loader__shadow"></span>
+    <p class="loader__text"><span data-bind="pages.loader.text">Có thư cho {to} nè</span><span class="loader__dots"><i>.</i><i>.</i><i>.</i></span></p>
+  </div>
+</div>
+
+<!-- Hạt bay trang trí -->
+<div class="ambient" id="ambient" aria-hidden="true"></div>
+
+<main class="app">
+  <header class="topbar">
+    <button class="icon-btn icon-btn--sm" id="btn-sound" type="button" aria-pressed="true" aria-label="Tắt âm thanh">
+      <svg aria-hidden="true" focusable="false" class="ic ic--on"><use href="#i-sound-on"/></svg>
+      <svg aria-hidden="true" focusable="false" class="ic ic--off"><use href="#i-sound-off"/></svg>
+    </button>
+  </header>
+
+  <div class="book-stage" id="stage">
+    <div class="book" id="book">
+
+      <!-- 0. Bìa trước -->
+      <section class="page page--cover" data-density="hard" aria-label="Bìa thư mời">
+        <div class="page__inner cover">
+          <div class="cover__plate" data-reveal style="--i:0">
+            <svg aria-hidden="true" focusable="false" class="cover__bow"><use href="#i-bow"/></svg>
+            <span class="cover__kicker" data-bind="pages.cover.kicker">Thư mời</span>
+            <h1 class="cover__title" data-bind="pages.cover.title">dự Lễ tốt nghiệp</h1>
+          </div>
+          <div class="cover__mascot" data-reveal style="--i:1">
+            <span class="mascot-slot bob" data-mascot="wave balloon"></span>
+            <svg aria-hidden="true" focusable="false" class="spark spark--a"><use href="#i-sparkle"/></svg>
+            <svg aria-hidden="true" focusable="false" class="spark spark--b"><use href="#i-star"/></svg>
+            <svg aria-hidden="true" focusable="false" class="spark spark--c"><use href="#i-heart"/></svg>
+            <svg aria-hidden="true" focusable="false" class="spark spark--d"><use href="#i-sparkle"/></svg>
+          </div>
+          <div class="cover__tagwrap" data-reveal style="--i:2">
+            <div class="cover__tag"><svg aria-hidden="true" focusable="false" class="ic"><use href="#i-heart"/></svg><span data-bind="pages.cover.to">Gửi {to}</span></div>
+          </div>
+          <p class="cover__hint" data-reveal style="--i:3">
+            <svg aria-hidden="true" focusable="false" class="hint-hand"><use href="#i-hand"/></svg>
+            <span data-bind="pages.cover.hint">Chạm hoặc vuốt để mở</span>
+          </p>
+        </div>
+      </section>
+
+      <!-- 1. Lời chào -->
+      <section class="page page--greeting" aria-label="Lời chào">
+        <div class="page__inner">
+          <span class="stamp" aria-hidden="true"><svg aria-hidden="true" focusable="false"><use href="#i-heart"/></svg></span>
+          <h2 class="title title--script" data-typewriter data-bind="pages.greeting.title" data-reveal style="--i:0">Gửi {to},</h2>
+          <p class="text" data-bind="pages.greeting.lead" data-reveal style="--i:1">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
+          <div class="page__art" data-reveal style="--i:2">
+            <button class="pet" type="button" data-action="pet" aria-label="Chạm vào bạn gấu">
+              <span class="bubble" data-bubble data-bind="mascot.hint">Chạm vào gấu nè!</span>
+              <span class="mascot-slot bob" data-mascot="wave"></span>
+            </button>
+            <svg aria-hidden="true" focusable="false" class="spark spark--a"><use href="#i-star"/></svg>
+            <svg aria-hidden="true" focusable="false" class="spark spark--d"><use href="#i-sparkle"/></svg>
+          </div>
+          <span class="page__num">1</span>
+        </div>
+      </section>
+
+      <!-- 2. Lời mời -->
+      <section class="page page--letter" aria-label="Lời mời">
+        <div class="page__inner">
+          <svg aria-hidden="true" focusable="false" class="doodle doodle--tr"><use href="#i-cap"/></svg>
+          <h2 class="title" data-reveal style="--i:0"><span class="hl" data-bind="pages.letter.title">Có điều này muốn nói</span></h2>
+          <div class="letter" data-bind-list="pages.letter.paragraphs">
+            <p class="text" data-reveal style="--i:1">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation.</p>
+            <p class="text" data-reveal style="--i:2">Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident.</p>
+          </div>
+          <div class="divider" data-reveal style="--i:3" aria-hidden="true">
+            <svg aria-hidden="true" focusable="false"><use href="#i-paw"/></svg><svg aria-hidden="true" focusable="false"><use href="#i-heart"/></svg><svg aria-hidden="true" focusable="false"><use href="#i-paw"/></svg>
+          </div>
+          <span class="page__num">2</span>
+        </div>
+      </section>
+
+      <!-- 3. Thông tin buổi lễ -->
+      <section class="page page--details" aria-label="Thông tin buổi lễ">
+        <div class="page__inner">
+          <svg aria-hidden="true" focusable="false" class="doodle doodle--tr"><use href="#i-sparkle"/></svg>
+          <h2 class="title" data-reveal style="--i:0"><span class="hl" data-bind="pages.details.title">Lễ tốt nghiệp</span></h2>
+          <ul class="info">
+            <li class="info__row" data-reveal style="--i:1">
+              <span class="info__icon"><svg aria-hidden="true" focusable="false"><use href="#i-calendar"/></svg></span>
+              <span class="info__text"><small>Ngày</small><strong data-bind="event.dateText">Chủ nhật, 15/11/2026</strong></span>
+            </li>
+            <li class="info__row" data-reveal style="--i:2">
+              <span class="info__icon"><svg aria-hidden="true" focusable="false"><use href="#i-clock"/></svg></span>
+              <span class="info__text"><small>Giờ</small><strong data-bind="event.timeText">08:00</strong></span>
+            </li>
+            <li class="info__row" data-reveal style="--i:3">
+              <span class="info__icon"><svg aria-hidden="true" focusable="false"><use href="#i-pin"/></svg></span>
+              <span class="info__text"><small>Địa điểm</small><strong data-bind="event.venue">Hội trường Lorem Ipsum</strong><em data-bind="event.address">123 Đường Dolor Sit, Quận Amet</em></span>
+            </li>
+          </ul>
+          <p class="text text--sm" data-bind="pages.details.note" data-reveal style="--i:4">Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
+          <div class="page__cta" data-reveal style="--i:5">
+            <a class="btn" data-bind-href="event.mapUrl" href="https://www.google.com/maps" target="_blank" rel="noopener"><svg aria-hidden="true" focusable="false" class="ic"><use href="#i-pin"/></svg><span>Mở bản đồ</span></a>
+          </div>
+          <span class="page__num">3</span>
+        </div>
+      </section>
+
+      <!-- 4. Ảnh polaroid -->
+      <section class="page page--photo" aria-label="Ảnh kỷ niệm">
+        <div class="page__inner">
+          <svg aria-hidden="true" focusable="false" class="doodle doodle--tr"><use href="#i-star"/></svg>
+          <h2 class="title" data-reveal style="--i:0"><span class="hl" data-bind="pages.photo.title">Khoảnh khắc nhỏ</span></h2>
+          <div class="polaroid-wrap" data-reveal style="--i:1">
+            <button class="polaroid" type="button" data-action="wobble" aria-label="Ảnh kỷ niệm, chạm để lắc">
+              <span class="polaroid__tape"></span>
+              <img class="polaroid__img" data-bind-src="pages.photo.src" src="assets/photo.svg" alt="" draggable="false">
+              <span class="polaroid__cap" data-bind="pages.photo.caption">Lorem ipsum dolor sit amet</span>
+              <svg aria-hidden="true" focusable="false" class="polaroid__sticker"><use href="#i-heart"/></svg>
+            </button>
+            <svg aria-hidden="true" focusable="false" class="spark spark--b"><use href="#i-heart"/></svg>
+            <svg aria-hidden="true" focusable="false" class="spark spark--d"><use href="#i-sparkle"/></svg>
+          </div>
+          <p class="together" data-together hidden><svg aria-hidden="true" focusable="false" class="ic"><use href="#i-heart"/></svg><span></span></p>
+          <p class="text text--sm text--center" data-bind="pages.photo.text" data-reveal style="--i:2">Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
+          <span class="page__num">4</span>
+        </div>
+      </section>
+
+      <!-- 5. Đếm ngược -->
+      <section class="page page--count" aria-label="Đếm ngược">
+        <div class="page__inner">
+          <svg aria-hidden="true" focusable="false" class="doodle doodle--tr"><use href="#i-clock"/></svg>
+          <h2 class="title" data-reveal style="--i:0"><span class="hl" data-bind="pages.countdown.title">Đếm ngược nào!</span></h2>
+          <p class="text text--sm" data-bind="pages.countdown.text" data-reveal style="--i:1">Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
+          <div class="count" data-countdown data-reveal style="--i:2">
+            <div class="count__tile"><b data-unit="d">00</b><small>ngày</small></div>
+            <div class="count__tile"><b data-unit="h">00</b><small>giờ</small></div>
+            <div class="count__tile"><b data-unit="m">00</b><small>phút</small></div>
+            <div class="count__tile"><b data-unit="s">00</b><small>giây</small></div>
+          </div>
+          <p class="count__done" data-bind="pages.countdown.done">Đến ngày rồi nè!</p>
+          <div class="page__art page__art--sm" data-reveal style="--i:3">
+            <button class="pet" type="button" data-action="pet" aria-label="Chạm vào bạn gấu">
+              <span class="mascot-slot bob" data-mascot="love"></span>
+            </button>
+          </div>
+          <div class="page__cta" data-reveal style="--i:4">
+            <a class="btn btn--lav" data-bind-href="event.calendarUrl" href="https://calendar.google.com" target="_blank" rel="noopener"><svg aria-hidden="true" focusable="false" class="ic"><use href="#i-cal-plus"/></svg><span>Thêm vào lịch</span></a>
+          </div>
+          <span class="page__num">5</span>
+        </div>
+      </section>
+
+      <!-- 6. Lời mời cuối -->
+      <section class="page page--rsvp" aria-label="Lời mời cuối">
+        <div class="page__inner">
+          <div class="page__art page__art--rsvp" data-reveal style="--i:0">
+            <button class="pet pet--couple" type="button" data-action="pet" aria-label="Chạm vào hai bạn gấu">
+              <span class="couple">
+                <span class="couple__a" data-mascot="love"></span>
+                <svg aria-hidden="true" focusable="false" class="couple__heart"><use href="#i-heart"/></svg>
+                <span class="couple__b" data-mascot="choco"></span>
+              </span>
+            </button>
+            <svg aria-hidden="true" focusable="false" class="spark spark--a"><use href="#i-heart"/></svg>
+            <svg aria-hidden="true" focusable="false" class="spark spark--b"><use href="#i-sparkle"/></svg>
+          </div>
+          <h2 class="title title--center" data-reveal style="--i:1"><span class="hl" data-rsvp-question data-bind="pages.rsvp.question">Đến chung vui nhé?</span></h2>
+          <p class="text text--center" data-bind="pages.rsvp.text" data-reveal style="--i:2">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor.</p>
+          <div class="page__cta page__cta--stack" data-reveal style="--i:3">
+            <button class="btn btn--big" type="button" data-action="rsvp"><svg aria-hidden="true" focusable="false" class="ic"><use href="#i-heart"/></svg><span data-rsvp-label data-bind="pages.rsvp.button">Mình sẽ đến!</span></button>
+            <button class="btn-no" type="button" data-action="rsvp-no"><span data-rsvp-no data-bind="pages.rsvp.no">Để nghĩ đã…</span></button>
+          </div>
+          <span class="page__num">6</span>
+        </div>
+      </section>
+
+      <!-- 7. Bìa sau -->
+      <section class="page page--back" data-density="hard" aria-label="Bìa sau">
+        <div class="page__inner cover cover--back">
+          <div class="back__couple" data-reveal style="--i:0">
+            <span class="couple couple--hug" aria-hidden="true">
+              <span class="couple__a" data-mascot="love"></span>
+              <svg aria-hidden="true" focusable="false" class="couple__heart"><use href="#i-heart"/></svg>
+              <span class="couple__b" data-mascot="choco"></span>
+            </span>
+          </div>
+          <h2 class="back__title" data-bind="pages.back.title" data-reveal style="--i:1">Hẹn gặp nhé!</h2>
+          <div class="back__note" data-reveal style="--i:2">
+            <p class="text text--center" data-bind="pages.back.text">Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
+            <p class="back__sign" data-bind="pages.back.sign">{from}</p>
+          </div>
+          <div class="page__cta" data-reveal style="--i:3">
+            <button class="btn btn--light" type="button" data-action="restart"><svg aria-hidden="true" focusable="false" class="ic"><use href="#i-replay"/></svg><span>Đọc lại từ đầu</span></button>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </div>
+
+  <nav class="controls" aria-label="Chuyển trang">
+    <button class="icon-btn" id="btn-prev" type="button" aria-label="Trang trước"><svg aria-hidden="true" focusable="false" class="ic"><use href="#i-arrow-left"/></svg></button>
+    <ol class="dots" id="dots" aria-hidden="true"></ol>
+    <button class="icon-btn" id="btn-next" type="button" aria-label="Trang sau"><svg aria-hidden="true" focusable="false" class="ic"><use href="#i-arrow-right"/></svg></button>
+  </nav>
+  <p class="sr-only" id="page-status" aria-live="polite"></p>
+</main>
+
+<!-- Lớp hiệu ứng ăn mừng và tim nở khi chạm -->
+<div class="fx" id="fx" aria-hidden="true"></div>
+
+<!-- Nhắc xoay dọc -->
+<div class="rotate" aria-hidden="true">
+  <div class="rotate__box">
+    <svg aria-hidden="true" focusable="false" class="rotate__ic"><use href="#i-heart"/></svg>
+    <p>Xoay dọc điện thoại nhé</p>
+  </div>
+</div>
+
+</body>
+</html>

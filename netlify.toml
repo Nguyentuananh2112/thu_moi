@@ -1,0 +1,3 @@
+# Trang tĩnh, không cần build. Thư mục gốc chính là thư mục xuất bản.
+[build]
+  publish = "."

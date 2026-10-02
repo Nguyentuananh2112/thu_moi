@@ -1,0 +1,303 @@
+/* =====================================================================
+   pinky-promise.css - "Ngoéo tay điểm chỉ"
+
+   Một tấm thẻ trắng nằm dưới nút ăn mừng ở trang lời mời cuối: bên trái là
+   hộp mực tròn có dấu vân tay hình tim, bên phải là dòng nhắn. Kiểu dáng
+   theo các thẻ thông tin buổi lễ (nền trắng, viền dưới màu nhấn của trang).
+
+   Trạng thái nằm cả trong DOM vì trang bị nhân bản lúc lật:
+   - data-step="0..5" trên nút: bao nhiêu đường vân đã lên mực
+   - class pinky-promise--done trên .page: đã ngoéo tay xong
+   Chỉ có transform và opacity được chuyển động.
+   ===================================================================== */
+
+/* Lớp ngoài: chiếm đủ bề ngang khối nút để CSS biết chỗ rộng hẹp (container query) */
+.pinky-promise {
+  position: relative;
+  width: 100%;
+  margin-top: .5em;
+  text-align: center;
+  container-type: inline-size;
+}
+
+/* Khối cha là flex nên thuộc tính hidden phải được nhắc lại ở đây */
+.pinky-promise[hidden] { display: none; }
+
+/* Vừa bấm đồng ý: giữ chỗ trước, chưa cho thấy (và chưa cho bấm) */
+.pinky-promise--wait { visibility: hidden; }
+
+.pinky-promise--pop {
+  animation: pinky-promise-pop .6s cubic-bezier(.34, 1.56, .64, 1) both;
+}
+
+@keyframes pinky-promise-pop {
+  0%   { opacity: 0; transform: translateY(.9em) scale(.55); }
+  55%  { opacity: 1; }
+  100% { opacity: 1; transform: none; }
+}
+
+/* Tấm thẻ: đầu trái tròn ôm lấy hộp mực, đầu phải bo nhẹ */
+.pinky-promise__card {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: .5em;
+  max-width: 100%;
+  padding: .2em .85em .2em .2em;
+  border-radius: 2.1em 1.3em 1.3em 2.1em;
+  background: #fff;
+  box-shadow: 0 .2em 0 var(--accent-soft);
+  vertical-align: top;
+}
+
+/* ---------- Hộp mực (nút giữ) ---------- */
+
+.pinky-promise__pad {
+  flex: none;
+  display: block;
+  width: 3.6em;
+  height: 3.6em;
+  min-width: 56px;
+  min-height: 56px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  color: var(--rose);
+  cursor: pointer;
+  /* Giữ lâu không được cuộn, bôi đen chữ hay bật menu của máy */
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+/* Cả tấm thẻ đều là vùng bấm của nút: chạm lệch sang dòng chữ vẫn tính,
+   và không vô tình lật trang (chạm vào chỗ không phải nút thì sách lật). */
+.pinky-promise__pad::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  border-radius: 2.1em 1.3em 1.3em 2.1em;
+}
+
+.pinky-promise__pad:focus-visible {
+  outline: 3px solid var(--rose);
+  outline-offset: 3px;
+}
+
+/* Khoá thật (mở lại thư) hay chỉ báo aria-disabled (vừa hứa xong bằng bàn phím, để giữ tiêu điểm):
+   nhìn y như nhau */
+.pinky-promise__pad:disabled,
+.pinky-promise__pad[aria-disabled="true"] {
+  color: var(--rose);
+  opacity: 1;
+  cursor: default;
+}
+
+.pinky-promise__cushion {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: radial-gradient(circle at 38% 28%, #FFF4F7 0%, #FFDDE6 58%, #FFC9D7 100%);
+  box-shadow: inset 0 .14em .34em rgba(232, 99, 140, .4), 0 0 0 .13em var(--accent-soft);
+  transition: transform .16s ease;
+}
+
+/* Vòng "thở" mời đặt ngón tay vào */
+.pinky-promise__cushion::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  border: .13em solid var(--pink);
+  border-radius: 50%;
+  opacity: 0;
+  animation: pinky-promise-breathe 2.2s ease-out infinite;
+}
+
+@keyframes pinky-promise-breathe {
+  0%        { transform: scale(1); opacity: .65; }
+  70%, 100% { transform: scale(1.34); opacity: 0; }
+}
+
+/* Đang giữ: hộp mực lún xuống, vòng thở nhường chỗ cho vòng sóng của từng nấc */
+.pinky-promise__pad--held .pinky-promise__cushion { transform: scale(.93); }
+.pinky-promise__pad--held .pinky-promise__cushion::after { animation: none; }
+
+/* Vòng sóng lan ra ở mỗi nấc (JS tạo rồi tự dọn) */
+.pinky-promise__ring {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  border: .16em solid var(--pink);
+  border-radius: 50%;
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* ---------- Dấu vân tay hình tim ---------- */
+
+.pinky-promise__print {
+  position: absolute;
+  top: 14%;
+  left: 14%;
+  width: 72%;
+  height: 72%;
+  overflow: visible;
+}
+
+.pinky-promise__ridge {
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: .2;
+  transition: opacity .25s ease;
+}
+
+/* Vệt mực loang dưới các đường vân, chỉ hiện khi đã đóng dấu */
+.pinky-promise__ink {
+  fill: currentColor;
+  opacity: 0;
+}
+
+/* Mực lên từ tâm ra ngoài theo số nấc */
+.pinky-promise__pad[data-step="1"] .pinky-promise__ridge--1,
+.pinky-promise__pad[data-step="2"] .pinky-promise__ridge--1,
+.pinky-promise__pad[data-step="2"] .pinky-promise__ridge--2,
+.pinky-promise__pad[data-step="3"] .pinky-promise__ridge--1,
+.pinky-promise__pad[data-step="3"] .pinky-promise__ridge--2,
+.pinky-promise__pad[data-step="3"] .pinky-promise__ridge--3,
+.pinky-promise__pad[data-step="4"] .pinky-promise__ridge--1,
+.pinky-promise__pad[data-step="4"] .pinky-promise__ridge--2,
+.pinky-promise__pad[data-step="4"] .pinky-promise__ridge--3,
+.pinky-promise__pad[data-step="4"] .pinky-promise__ridge--4,
+.pinky-promise__pad[data-step="5"] .pinky-promise__ridge { opacity: 1; }
+
+/* ---------- Dòng nhắn ---------- */
+
+.pinky-promise__label {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-family: var(--font-head);
+  font-weight: 700;
+  font-size: .87em;
+  font-size: max(13px, .87em);   /* trang có tự thu nhỏ chữ thì dòng này vẫn không dưới 13px */
+  line-height: 1.25;
+  color: var(--cocoa);
+  text-wrap: balance;
+}
+
+/* Hai mảnh của nhãn đã ngoéo tay: mỗi câu một khối, câu dài hơn dòng thì tự xuống dòng bên trong */
+.pinky-promise__when,
+.pinky-promise__fine { display: inline-block; }
+
+.pinky-promise__fine {
+  font-weight: 600;
+  color: var(--cocoa);
+}
+
+/* Ngôi sao lấp lánh cạnh dấu tay, chỉ hiện khi đã ngoéo tay */
+.pinky-promise__spark {
+  position: absolute;
+  top: -.3em;
+  left: 2.9em;
+  width: 1em;
+  height: 1em;
+  color: var(--gold);
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* ---------- Đã ngoéo tay: hộp mực thành dấu tay mực hồng, hơi nghiêng ---------- */
+
+.pinky-promise--done .pinky-promise__pad { touch-action: auto; }
+.pinky-promise--done .pinky-promise__pad::before { content: none; }
+
+.pinky-promise--done .pinky-promise__cushion {
+  background: none;
+  box-shadow: none;
+  transform: rotate(-9deg);
+}
+
+.pinky-promise--done .pinky-promise__cushion::after { content: none; }
+
+.pinky-promise--done .pinky-promise__print { transform: scale(1.2); }
+.pinky-promise--done .pinky-promise__ink { opacity: .16; }
+.pinky-promise--done .pinky-promise__label {
+  color: var(--accent-ink);
+  /* Đã đóng dấu thì hai câu là lời chú thích của dấu tay: canh trái để câu ghi ngày nằm sát
+     ngay cạnh dấu tay. Canh giữa thì trên sách rộng hai câu trôi ra giữa khoảng trống bên phải,
+     nhìn như hai thứ rời nhau. */
+  text-align: left;
+}
+
+/* Mỗi câu một dòng riêng, chắc chắn chứ không phụ thuộc bề ngang. Nhờ vậy nhãn chỉ rộng bằng
+   câu dài hơn, và tấm thẻ co lại ôm vừa dấu tay với hai câu thành một con tem gọn gàng
+   (JS cho tấm thẻ trượt êm về giữa, để dấu tay không bị giật sang bên lúc "cộp") */
+.pinky-promise--done .pinky-promise__when,
+.pinky-promise--done .pinky-promise__fine { display: block; }
+
+.pinky-promise--done .pinky-promise__spark {
+  opacity: 1;
+  animation: pinky-promise-twinkle 2.4s ease-in-out infinite;
+}
+
+/* Sách nhỏ (máy 320px): đã đóng dấu thì hộp mực không còn là chỗ bấm, nên dấu tay được
+   thu gọn và tấm thẻ lấn nhẹ ra lề trang, để hai câu vẫn nằm gọn trong hai dòng.
+   Máy cũ không hiểu container query thì nhãn ba dòng, vẫn thấp hơn dấu tay nên không tràn. */
+@container (max-width: 16em) {
+  .pinky-promise--done .pinky-promise__card {
+    gap: .3em;
+    max-width: calc(100% + .7em);
+    margin: 0 -.35em;
+    padding: .2em .45em .2em .15em;
+  }
+
+  /* Chỉ hẹp lại, giữ nguyên chiều cao: lúc "cộp" dấu, chữ và đôi gấu phía trên không bị xô lệch */
+  .pinky-promise--done .pinky-promise__pad {
+    width: 2.6em;
+    min-width: 0;
+  }
+
+  .pinky-promise--done .pinky-promise__spark { left: 2em; }
+}
+
+/* Cú "cộp" của con dấu cao su: bẹp xuống, nảy lên rồi nằm nghiêng */
+.pinky-promise__cushion--stamp {
+  animation: pinky-promise-stamp .6s cubic-bezier(.3, .6, .4, 1) both;
+}
+
+@keyframes pinky-promise-stamp {
+  0%   { transform: scale(1.25) rotate(0deg); }
+  30%  { transform: scale(1.22, .7) rotate(-3deg); }
+  58%  { transform: scale(.9, 1.14) rotate(-12deg); }
+  80%  { transform: scale(1.05, .96) rotate(-8deg); }
+  100% { transform: scale(1) rotate(-9deg); }
+}
+
+@keyframes pinky-promise-twinkle {
+  0%, 100% { transform: scale(.6) rotate(0deg); opacity: .4; }
+  50%      { transform: scale(1.1) rotate(18deg); opacity: 1; }
+}
+
+/* ---------- Giảm chuyển động: không vòng sóng, không cú "cộp", mực lên tức thì ---------- */
+
+.reduce-motion .pinky-promise__ridge,
+.reduce-motion .pinky-promise__cushion { transition: none; }
+
+.reduce-motion .pinky-promise__pad--held .pinky-promise__cushion { transform: none; }

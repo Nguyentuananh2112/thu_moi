@@ -1,0 +1,17 @@
+Nhạc nền
+========
+
+1) cho-chut.mp3
+   Bài "chờ chút..." của TINH HÀ "SAY HI" feat. CONGB, do bạn chọn.
+   Đã cắt sẵn từ giây 0:37 của bài gốc, làm nhỏ dần vào/ra ở hai đầu cho êm,
+   và chỉnh độ to cho vừa làm nhạc nền (iPhone không cho trang tự chỉnh độ to).
+   File gốc "chờ chút.mp3" không được trang dùng tới: có thể xoá trước khi đưa lên mạng
+   cho nhẹ (9 MB), hoặc cứ để đó cũng không sao.
+
+2) nhac-nen.mp3
+   Bản piano "lãng mạn nhẹ" sáng tác riêng cho thư mời này. Tiếng đàn dựng từ bộ mẫu
+   Salamander Grand Piano của Alexander Holm, giấy phép Creative Commons Attribution 3.0
+   (CC BY 3.0, https://creativecommons.org/licenses/by/3.0/), bản rút gọn lấy tại
+   https://tonejs.github.io/audio/salamander/. Giấy phép chỉ yêu cầu ghi nguồn như trên.
+
+Thứ tự phát và số lượt lặp chỉnh ở mục audio.bgm trong config.js.

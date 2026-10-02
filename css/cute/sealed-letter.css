@@ -1,0 +1,639 @@
+/* =====================================================================
+   sealed-letter.css - lá thư niêm phong ở trang đếm ngược và cửa sổ đọc thư
+
+   Phong bì nằm tuyệt đối trong vùng bạn gấu (.page__art) nên không chiếm
+   chỗ của dòng chảy: bộ đếm và nút "Thêm vào lịch" không xê dịch.
+   Trạng thái nằm ở class của trang: sealed-letter--ready, sealed-letter--opened.
+   ===================================================================== */
+
+/* ---------- Khung chứa: góc dưới bên phải vùng bạn gấu ---------- */
+
+.sealed-letter {
+  position: absolute;
+  z-index: 3;
+  top: 0;
+  right: -.45em;
+  bottom: 0;
+  /* Gấu cao tối đa 11.5em và nằm giữa vùng này. Vùng cao hơn thế thì nhấc phong bì
+     lên ngang bàn chân gấu để hai thứ đứng chung một "mặt đất". */
+  bottom: max(0px, calc(50% - 5.75em));
+  width: 4.8em;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  /* Khoảng trống phía trên phong bì không được chặn cú chạm vào gấu */
+  pointer-events: none;
+  /* Để CSS tự biết khung này thấp cỡ nào (xem phần "vùng gấu rất thấp" bên dưới).
+     Trình duyệt cũ không hiểu thì vẫn hiện kiểu thường. */
+  container-type: size;
+  container-name: sealed-letter;
+}
+
+/* Vùng gấu thấp (máy nhỏ, chữ dài) thì cả cụm co lại theo chứ không tràn lên bộ đếm */
+.sealed-letter__stack {
+  display: flex;
+  flex-direction: column;
+  flex: 0 1 auto;
+  min-height: 0;
+  max-height: 100%;
+}
+
+.sealed-letter__btn {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  flex: 0 1 auto;
+  width: 100%;
+  min-height: 44px;
+  margin: 0;
+  padding: 0 0 .2em;
+  border: 0;
+  border-radius: .9em;
+  background: none;
+  color: inherit;
+  cursor: pointer;
+  pointer-events: auto;
+  touch-action: manipulation;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.sealed-letter__btn:focus-visible {
+  outline: 3px solid var(--rose);
+  outline-offset: 3px;
+}
+
+/* Tiêu điểm được trả về sau khi đóng thư bằng tay chạm: không vẽ viền (JS gỡ class này
+   ngay khi có phím bấm, nên người dùng bàn phím vẫn thấy viền) */
+.sealed-letter__btn--quiet:focus-visible { outline: none; }
+
+/* ---------- Phong bì ---------- */
+
+.sealed-letter__env {
+  display: block;
+  flex: 0 1 3.05em;
+  min-height: 0;
+  width: 4.2em;
+  max-width: 100%;
+  overflow: visible;
+  transform: rotate(5deg);
+  transform-origin: 50% 80%;
+  transition: transform .15s ease;
+}
+
+.sealed-letter__btn:active .sealed-letter__env { transform: rotate(5deg) scale(.93); }
+
+/* Giấy kraft màu bánh quy: khác hẳn phong bì hồng ở màn mở đầu,
+   và nổi rõ trên nền tím lavender của trang đếm ngược */
+.sealed-letter__edge { fill: #B98A5E; }
+.sealed-letter__body { fill: #EDCFA4; }
+.sealed-letter__fold { fill: #E2BC8A; }
+.sealed-letter__flap { fill: #D9AF7C; }
+.sealed-letter__flap-up { fill: #E6C496; }
+/* Lót trong phong bì màu lavender, chỉ thấy khi đã bóc */
+.sealed-letter__inside { fill: #CDBDF5; }
+.sealed-letter__pocket { fill: #EDCFA4; }
+
+/* Dấu sáp: tím mận khi còn khoá, vàng óng khi mở được. In hình ngôi sao. */
+.sealed-letter__wax-edge { fill: #3B3046; }
+.sealed-letter__wax-face { fill: #6A5682; }
+.sealed-letter__wax-ring { fill: none; stroke: #9C88BC; stroke-width: 1.1; }
+.sealed-letter__wax-star { fill: #E4D7FF; stroke: #E4D7FF; stroke-width: .5; stroke-linejoin: round; }
+
+.sealed-letter--ready .sealed-letter__wax-edge { fill: #C98A1E; }
+.sealed-letter--ready .sealed-letter__wax-face { fill: #F6C453; }
+.sealed-letter--ready .sealed-letter__wax-ring { stroke: #FCE7A8; }
+.sealed-letter--ready .sealed-letter__wax-star { fill: #FFFDF9; stroke: #FFFDF9; }
+
+/* Vết nứt trên dấu sáp: chỉ hiện trong cảnh bóc thư */
+.sealed-letter__wax-crack {
+  fill: none;
+  stroke: #FFFDF9;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: 0;
+}
+
+.sealed-letter__wax { transform-origin: 32px 26px; }
+.sealed-letter__flap { transform-origin: 32px 3px; }
+
+/* Đã bóc: nắp bật lên, lá thư nhô ra */
+.sealed-letter__open { display: none; }
+.sealed-letter--opened .sealed-letter__open { display: inline; }
+.sealed-letter--opened .sealed-letter__shut,
+.sealed-letter--opened .sealed-letter__body { display: none; }
+
+.sealed-letter__flap-up { transform-origin: 32px 9px; }
+
+/* ---------- Thẻ treo ---------- */
+
+/* Sợi dây mảnh màu nâu, hơi xiên như được buộc vội */
+.sealed-letter__string {
+  flex: none;
+  display: block;
+  width: 0;
+  height: .5em;
+  margin-top: -.18em;
+  border-left: 2px solid #8C6A4A;
+  border-radius: 1px;
+  transform: rotate(-10deg);
+}
+
+.sealed-letter__tag {
+  position: relative;
+  z-index: 1;
+  flex: none;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  max-width: 100%;
+  margin-top: -.1em;
+  padding: .52em .6em .14em;
+  overflow: hidden;
+  border-radius: .45em .45em .75em .75em;
+  background: var(--butter);
+  color: var(--berry);
+  font-family: var(--font-head);
+  font-weight: 700;
+  font-size: max(13px, .87em);
+  line-height: 1.14;
+  text-align: center;
+  overflow-wrap: anywhere;
+  text-wrap: balance;
+  box-shadow: 0 .16em 0 rgba(91, 42, 60, .22);
+  transform: rotate(-4deg);
+}
+
+/* Lỗ xỏ dây ở đầu thẻ */
+.sealed-letter__tag::before {
+  content: "";
+  position: absolute;
+  top: .13em;
+  left: 50%;
+  width: .3em;
+  height: .3em;
+  margin-left: -.15em;
+  border-radius: 50%;
+  background: var(--paper);
+  box-shadow: 0 0 0 1.5px #8C6A4A;
+}
+
+.sealed-letter--ready .sealed-letter__tag { background: var(--gold); }
+
+.sealed-letter--opened .sealed-letter__tag {
+  background: #fff;
+  box-shadow: 0 .16em 0 var(--accent-soft);
+}
+
+/* ---------- Vùng gấu rất thấp (máy nhỏ trong Zalo, chữ dài) ----------
+   Xếp dọc thì không đủ cao. Khi đó phong bì thu nhỏ hơn hẳn bạn gấu, nằm sát mép phải,
+   còn thẻ treo (hai dòng, chữ vẫn 13px) đứng chếch xuống bên trái, giắt vào góc phong bì,
+   nằm giữa phong bì và bạn gấu: không đè lên chân hay mặt bạn ấy.
+   Vùng bấm phủ cả thẻ lẫn phong bì, không bao giờ nhỏ hơn 44px. */
+@container sealed-letter (max-height: 5.7em) {
+  .sealed-letter__stack { height: 100%; }
+
+  .sealed-letter__btn {
+    display: block;
+    flex: 1 1 auto;
+    width: calc(100% + .9em);
+    margin-left: -.9em;
+    padding: 0;
+  }
+
+  .sealed-letter__env {
+    position: absolute;
+    right: -.3em;
+    top: max(.1em, calc(50% - 1.5em));
+    width: 2.5em;
+    height: 1.8em;
+  }
+
+  .sealed-letter__string,
+  .sealed-letter__tag::before { display: none; }
+
+  /* Thẻ nằm sát đáy, lùi sang phải một chút: tránh được đầu bạn gấu (nhất là khi gấu to lên
+     ở màn 320x460), góc trên bên phải giắt vào góc dưới phong bì, không che dấu sáp */
+  .sealed-letter__tag {
+    position: absolute;
+    left: .55em;
+    bottom: 0;
+    /* Vừa hai dòng "Mở được / rồi nè" ở 13px mà không lấn sang dấu sáp */
+    width: max-content;
+    max-width: 4.55em;
+    margin: 0;
+    padding: .2em .26em .08em;
+    font-size: max(13px, .86em);
+    line-height: 1.08;
+    -webkit-line-clamp: 2;
+    border-radius: .5em;
+    transform: rotate(-4deg);
+  }
+}
+
+/* ---------- Lấp lánh khi mở được ---------- */
+
+.sealed-letter__twinkle {
+  position: absolute;
+  display: none;
+  width: 1.05em;
+  height: 1.05em;
+  color: var(--gold);
+}
+
+.sealed-letter__twinkle--a { top: -.8em; left: -.1em; }
+.sealed-letter__twinkle--b { top: -.35em; right: -.2em; width: .8em; height: .8em; color: var(--pink); }
+
+.sealed-letter--ready .sealed-letter__twinkle { display: block; }
+.sealed-letter--opened .sealed-letter__twinkle--a { top: -1.2em; left: -.3em; }
+.sealed-letter--opened .sealed-letter__twinkle--b { top: -.9em; }
+
+/* ---------- Bong bóng trêu ----------
+   Nằm ngay phía trên phong bì, đuôi chỉ xuống phong bì.
+   - Vùng gấu thấp (máy nhỏ): bong bóng dẹt và rộng, nằm trên đầu gấu.
+   - Vùng gấu rộng rãi (class sealed-letter--roomy do JS đo rồi gắn): bong bóng hẹp
+     và cao, đứng gọn bên phải đầu gấu để không che mặt bạn ấy. */
+
+.sealed-letter__bubble {
+  position: absolute;
+  z-index: 2;
+  right: .1em;
+  bottom: 6.8em;
+  width: max-content;
+  max-width: 13em;
+  padding: .32em .85em .22em;
+  border-radius: 1.1em;
+  background: #fff;
+  color: var(--accent-ink);
+  font-family: var(--font-head);
+  font-weight: 700;
+  /* Không nhỏ hơn 13px kể cả khi sách bị thu nhỏ (JS có thể hạ đúng về 13px khi trang chật) */
+  font-size: max(13px, .92em);
+  line-height: 1.25;
+  text-align: center;
+  overflow-wrap: anywhere;
+  /* Hai dòng dài gần bằng nhau, không để một chữ lẻ loi ở dòng dưới */
+  text-wrap: balance;
+  box-shadow: 0 0 0 2px var(--accent-soft), 0 .2em 0 2px var(--accent-soft);
+  opacity: 0;
+  transform: scale(.6);
+  transform-origin: 82% 120%;
+  transition: opacity .2s ease, transform .2s ease;
+  pointer-events: none;
+}
+
+.sealed-letter__bubble::after {
+  content: "";
+  position: absolute;
+  /* z-index âm: đuôi nằm dưới chữ nhưng vẫn trên nền bong bóng */
+  z-index: -1;
+  right: 1.9em;
+  bottom: -.62em;
+  width: 1.15em;
+  height: 1.15em;
+  background: #fff;
+  border-radius: 0 0 .25em 0;
+  /* Hình thoi kéo dài thành cái đuôi nhọn chỉ xuống phong bì */
+  transform: rotate(45deg) skew(22deg, 22deg);
+  box-shadow: 2px 2px 0 var(--accent-soft);
+}
+
+/* Vị trí (right, bottom) và bề ngang tối đa do JS đo chỗ trống rồi ghi vào bong bóng */
+.sealed-letter--roomy .sealed-letter__bubble {
+  padding-left: .65em;
+  padding-right: .65em;
+}
+
+/* Trang chật: bong bóng đứng bên trái bạn gấu, đuôi chĩa sang phải vào gấu
+   (gấu canh thư lên tiếng), không đè bộ đếm phía trên */
+.sealed-letter--side .sealed-letter__bubble {
+  padding-left: .55em;
+  padding-right: .55em;
+  transform-origin: 108% 50%;
+}
+
+.sealed-letter--side .sealed-letter__bubble::after {
+  right: -.42em;
+  bottom: auto;
+  top: 50%;
+  width: .95em;
+  height: .95em;
+  margin-top: -.475em;
+  border-radius: 0 .2em 0 0;
+  transform: rotate(45deg) skew(12deg, 12deg);
+  box-shadow: 2px -2px 0 var(--accent-soft);
+}
+
+.sealed-letter--tease .sealed-letter__bubble {
+  opacity: 1;
+  transform: none;
+  animation: sealed-letter-pop .42s cubic-bezier(.34, 1.56, .64, 1);
+}
+
+@keyframes sealed-letter-pop {
+  from { transform: scale(.5); }
+  to   { transform: scale(1); }
+}
+
+/* ---------- Chuyển động của phong bì ---------- */
+
+/* Chưa tới ngày mà chạm: lắc đầu nguầy nguậy */
+.sealed-letter__btn--wiggle .sealed-letter__env { animation: sealed-letter-wiggle .6s ease-in-out; }
+.sealed-letter__btn--wiggle .sealed-letter__tag { animation: sealed-letter-tag .6s ease-in-out; }
+
+@keyframes sealed-letter-wiggle {
+  0%, 100% { transform: rotate(5deg); }
+  15%      { transform: rotate(-9deg) scale(1.05); }
+  35%      { transform: rotate(15deg) scale(1.05); }
+  55%      { transform: rotate(-5deg); }
+  78%      { transform: rotate(9deg); }
+}
+
+@keyframes sealed-letter-tag {
+  0%, 100% { transform: rotate(-4deg); }
+  25%      { transform: rotate(5deg); }
+  55%      { transform: rotate(-9deg); }
+  80%      { transform: rotate(-1deg); }
+}
+
+/* Mở được rồi: nhún nhẹ mời chạm */
+.sealed-letter--ready .sealed-letter__env { animation: sealed-letter-ready 1.7s ease-in-out infinite; }
+.sealed-letter--ready .sealed-letter__twinkle { animation: sealed-letter-twinkle 1.9s ease-in-out infinite; }
+.sealed-letter--ready .sealed-letter__twinkle--b { animation-delay: -.8s; }
+
+.sealed-letter--opened .sealed-letter__env { animation: none; }
+
+@keyframes sealed-letter-ready {
+  0%, 100% { transform: rotate(5deg) scale(1); }
+  45%      { transform: rotate(1deg) scale(1.09) translateY(-.12em); }
+}
+
+@keyframes sealed-letter-twinkle {
+  0%, 100% { transform: scale(.5) rotate(0deg); opacity: .35; }
+  50%      { transform: scale(1.1) rotate(18deg); opacity: 1; }
+}
+
+/* Khoảnh khắc bóc dấu sáp (lần mở đầu), trên phong bì còn niêm phong:
+   phong bì nảy lên, dấu sáp nứt rồi bật văng ra, nắp hé lên. Giữ trạng thái cuối
+   ("forwards") cho tới khi cất thư lại thì JS mới đổi sang hình đã bóc. */
+.sealed-letter__btn--break .sealed-letter__env { animation: sealed-letter-break .6s cubic-bezier(.34, 1.56, .64, 1) forwards; }
+.sealed-letter__btn--break .sealed-letter__wax { animation: sealed-letter-wax-pop .46s ease-in forwards; }
+.sealed-letter__btn--break .sealed-letter__wax-crack { animation: sealed-letter-crack .46s linear forwards; }
+.sealed-letter__btn--break .sealed-letter__flap { animation: sealed-letter-lift .3s ease-out .2s forwards; }
+
+@keyframes sealed-letter-break {
+  0%   { transform: rotate(5deg) scale(1); }
+  35%  { transform: rotate(-4deg) scale(1.22); }
+  100% { transform: rotate(5deg) scale(1); }
+}
+
+@keyframes sealed-letter-wax-pop {
+  0%   { transform: scale(1) rotate(0deg); opacity: 1; }
+  25%  { transform: scale(1.18) rotate(-8deg); opacity: 1; }
+  50%  { transform: scale(1.1) rotate(10deg); opacity: 1; }
+  100% { transform: translate(6px, -14px) scale(.2) rotate(40deg); opacity: 0; }
+}
+
+@keyframes sealed-letter-crack {
+  0%, 15% { opacity: 0; }
+  25%, 100% { opacity: 1; }
+}
+
+/* Nắp gập ngược lên trên mép phong bì (giống như vừa được mở ra) */
+@keyframes sealed-letter-lift {
+  from { transform: scaleY(1); }
+  to   { transform: scaleY(-.7); }
+}
+
+/* Cất thư lại sau lần đọc đầu: lá thư tụt xuống nằm gọn trong túi, nắp bật lên */
+.sealed-letter__btn--settle .sealed-letter__env { animation: sealed-letter-settle .5s cubic-bezier(.34, 1.56, .64, 1); }
+.sealed-letter__btn--settle .sealed-letter__paper { animation: sealed-letter-peek .55s cubic-bezier(.34, 1.4, .64, 1) both; }
+.sealed-letter__btn--settle .sealed-letter__flap-up { animation: sealed-letter-flap .35s ease-out both; }
+
+@keyframes sealed-letter-settle {
+  0%   { transform: rotate(5deg) scale(1); }
+  40%  { transform: rotate(2deg) scale(.92, 1.06); }
+  100% { transform: rotate(5deg) scale(1); }
+}
+
+@keyframes sealed-letter-peek {
+  from { transform: translateY(-14px); }
+  to   { transform: translateY(0); }
+}
+
+@keyframes sealed-letter-flap {
+  from { transform: scaleY(0); }
+  to   { transform: scaleY(1); }
+}
+
+/* ---------- Cửa sổ đọc thư ---------- */
+
+/* Thư dài hơn màn hình phải cuộn được bên trong thẻ giấy. Ở lõi, .sheet là lưới có
+   hàng "auto" nên max-height: 100% của thẻ không có gì để bám, thẻ cao vượt màn hình
+   và phần cuối thư (chữ ký, nút "Cất thư lại") bị cắt mất. Cho hàng lưới đúng bằng
+   chiều cao còn lại thì thẻ bị giới hạn, và .sheet__body tự cuộn. */
+.sheet.sealed-letter-sheet { grid-template-rows: minmax(0, 1fr); }
+
+.sealed-letter-sheet .sheet__card {
+  /* Phần thư đang cuộn (và lớp mờ cuối thư) không được lòi ra ngoài góc bo tròn */
+  overflow: hidden;
+  background:
+    linear-gradient(180deg, #FFF1C4 0, rgba(255, 241, 196, 0) 9em),
+    var(--paper);
+}
+
+/* Khung nét đứt giống các trang sách */
+.sealed-letter-sheet .sheet__card::before {
+  content: "";
+  position: absolute;
+  inset: 9px;
+  border: 2px dashed #F3D27A;
+  border-radius: 18px;
+  pointer-events: none;
+  /* Nằm trên lớp mờ cuối thư bên dưới, để khung nét đứt luôn liền mạch */
+  z-index: 1;
+}
+
+.sealed-letter-sheet .sheet__body { padding: 1.5em 1.6em .3em; }
+
+/* Mép dưới mờ dần khi thư còn chữ bên dưới (gợi ý cuộn xuống). Dính ở đáy vùng cuộn;
+   cuộn tới cuối thì nó nằm vào khoảng trống riêng dưới nút, không che chữ nào. */
+.sealed-letter-sheet .sheet__body::after {
+  content: "";
+  position: -webkit-sticky;
+  position: sticky;
+  bottom: 0;
+  display: block;
+  height: 1.2em;
+  margin: 0 -1.6em;
+  background: linear-gradient(rgba(255, 253, 249, 0), var(--paper) 85%);
+  pointer-events: none;
+}
+
+.sealed-letter-sheet__seal {
+  width: 6.4em;
+  margin: 0 auto .1em;
+}
+
+.sealed-letter-sheet__seal svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.sealed-letter-sheet__half--l {
+  transform: translate(-8px, 1px) rotate(-13deg);
+  transform-origin: 60px 64px;
+}
+
+.sealed-letter-sheet__half--r {
+  transform: translate(8px, 1px) rotate(13deg);
+  transform-origin: 60px 64px;
+}
+
+.sealed-letter-sheet__heart { transform-origin: 60px 24px; }
+
+.sealed-letter-sheet__spark {
+  transform-box: fill-box;
+  transform-origin: 50% 50%;
+}
+
+.sealed-letter-sheet__spark--a { color: var(--gold); }
+.sealed-letter-sheet__spark--b { color: var(--pink); }
+.sealed-letter-sheet__spark--c { color: #FFB3C6; }
+
+.sealed-letter-sheet__title {
+  margin: 0 0 .55em;
+  font-family: var(--font-head);
+  font-weight: 700;
+  font-size: 1.42em;
+  line-height: 1.22;
+  text-align: center;
+  color: var(--rose);
+  overflow-wrap: anywhere;
+  text-wrap: balance;
+}
+
+.sealed-letter-sheet__title[hidden],
+.sealed-letter-sheet__sign[hidden] { display: none; }
+
+.sealed-letter-sheet__hl {
+  padding: 0 .12em;
+  margin: 0 -.12em;
+  background-image: linear-gradient(transparent 58%, #FBE3A1 58%, #FBE3A1 90%, transparent 90%);
+  border-radius: .2em;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+}
+
+/* Lời thư viết tay trên giấy kẻ dòng */
+.sealed-letter-sheet__text {
+  font-family: var(--font-hand);
+  font-size: 1em;
+  line-height: 1.8;
+  color: var(--cocoa);
+  background-image: linear-gradient(transparent calc(1.8em - 1.5px), rgba(232, 99, 140, .17) calc(1.8em - 1.5px));
+  background-size: 100% 1.8em;
+  overflow-wrap: anywhere;
+}
+
+.sealed-letter-sheet__text p {
+  margin: 0;
+  text-indent: 1.3em;
+  white-space: pre-line;
+}
+
+.sealed-letter-sheet__sign {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: .35em;
+  margin: .55em 0 0;
+  font-family: var(--font-script);
+  font-size: 1.3em;
+  line-height: 1.45;
+  color: var(--rose-ink, var(--rose));   /* hồng đậm hơn cho dễ đọc trên giấy */
+  overflow-wrap: anywhere;
+}
+
+.sealed-letter-sheet__sign .ic {
+  width: .7em;
+  height: .7em;
+  color: var(--pink);
+}
+
+.sealed-letter-sheet__cta {
+  display: flex;
+  justify-content: center;
+  margin-top: 1.1em;
+  padding-bottom: .35em;
+}
+
+.sealed-letter-sheet__cta .btn {
+  --btn-bg: var(--butter);
+  --btn-edge: #E2AE3A;
+  --btn-fg: var(--berry);
+  font-size: 1.05em;
+}
+
+.sealed-letter-sheet__cta .ic { color: var(--rose); }
+
+/* Mỗi lần mở cửa sổ: dấu sáp tách đôi, tim bay ra, từng dòng thư hiện dần.
+   Trạng thái nghỉ là trạng thái cuối, nên tắt chuyển động vẫn thấy đủ nội dung. */
+.sealed-letter-sheet.is-open .sealed-letter-sheet__half--l { animation: sealed-letter-split-l .55s cubic-bezier(.34, 1.56, .64, 1) .12s both; }
+.sealed-letter-sheet.is-open .sealed-letter-sheet__half--r { animation: sealed-letter-split-r .55s cubic-bezier(.34, 1.56, .64, 1) .12s both; }
+
+.sealed-letter-sheet.is-open .sealed-letter-sheet__heart {
+  animation:
+    sealed-letter-heart .6s cubic-bezier(.34, 1.56, .64, 1) .3s both,
+    sealed-letter-beat 1.5s ease-in-out 1s infinite;
+}
+
+.sealed-letter-sheet.is-open .sealed-letter-sheet__spark { animation: sealed-letter-twinkle 2.2s ease-in-out infinite; }
+.sealed-letter-sheet.is-open .sealed-letter-sheet__spark--b { animation-delay: -.7s; }
+.sealed-letter-sheet.is-open .sealed-letter-sheet__spark--c { animation-delay: -1.4s; }
+
+.sealed-letter-sheet.is-open .sealed-letter-sheet__in {
+  animation: sealed-letter-rise .5s ease both;
+  animation-delay: calc(var(--i, 0) * 110ms + 320ms);
+}
+
+@keyframes sealed-letter-split-l {
+  from { transform: translate(0, 0) rotate(0deg); }
+  to   { transform: translate(-8px, 1px) rotate(-13deg); }
+}
+
+@keyframes sealed-letter-split-r {
+  from { transform: translate(0, 0) rotate(0deg); }
+  to   { transform: translate(8px, 1px) rotate(13deg); }
+}
+
+@keyframes sealed-letter-heart {
+  from { transform: translateY(20px) scale(0); opacity: 0; }
+  to   { transform: translateY(0) scale(1); opacity: 1; }
+}
+
+@keyframes sealed-letter-beat {
+  0%, 100% { transform: scale(1); }
+  30%      { transform: scale(1.16); }
+  55%      { transform: scale(.96); }
+}
+
+@keyframes sealed-letter-rise {
+  from { transform: translateY(10px); opacity: 0; }
+  to   { transform: translateY(0); opacity: 1; }
+}
+
+/* ---------- Giảm chuyển động ----------
+   animations.css đã tắt mọi animation; ở đây tắt nốt các transition có dịch chuyển. */
+
+.reduce-motion .sealed-letter__env { transition: none; }
+
+.reduce-motion .sealed-letter__bubble {
+  transform: none;
+  transition: opacity .15s linear;
+}

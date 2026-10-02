@@ -1,0 +1,260 @@
+/* =====================================================================
+   greeting-play.css - trang lời chào sống động
+   (dòng viết nhầm, dấu bưu điện, gấu ngủ gật ban đêm)
+
+   Chỉ chuyển động bằng transform và opacity. Chế độ giảm chuyển động đã
+   được animations.css tắt hết animation, nên mọi thứ ở đây phải trông
+   ổn ngay cả khi đứng yên.
+   ===================================================================== */
+
+/* ---------- 1. Tiêu đề và dòng viết nhầm ---------- */
+
+/* Tên người nhận là một chuỗi dài không có dấu cách thì cho phép ngắt giữa chừng,
+   khỏi tràn ra ngoài trang */
+.greeting-play__title {
+  position: relative;
+  overflow-wrap: anywhere;
+}
+
+/* Dòng viết nhầm nằm trên một lớp nổi nên không đẩy lời thư bên dưới.
+   Luôn một dòng; dài quá thì JS thu nhỏ lại (transform: scale). */
+.greeting-play__wrong {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: -webkit-max-content;
+  width: max-content;
+  white-space: nowrap;
+  transform-origin: 0 50%;
+  pointer-events: none;
+}
+
+.greeting-play__wrong-text {
+  display: inline-block;
+  transform-origin: 0 80%;
+}
+
+/* Gấu vừa kêu lên là dòng chữ giật mình */
+.greeting-play__wrong-text.is-oops {
+  animation: greeting-play-oops .5s ease-in-out;
+}
+
+@keyframes greeting-play-oops {
+  0%, 100% { transform: rotate(0deg); }
+  20%      { transform: rotate(-2.2deg) translateY(-.06em); }
+  45%      { transform: rotate(1.8deg); }
+  70%      { transform: rotate(-1deg); }
+}
+
+/* Con trỏ của dòng viết nhầm, cùng kiểu với con trỏ gõ chữ gốc */
+.greeting-play__caret { position: relative; }
+
+.greeting-play__caret::after {
+  content: "";
+  position: absolute;
+  left: 2px;
+  top: .2em;
+  width: 2px;
+  height: 1em;
+  border-radius: 2px;
+  background: var(--pink);
+  animation: greeting-play-caret .7s steps(1) infinite;
+}
+
+@keyframes greeting-play-caret {
+  50% { opacity: 0; }
+}
+
+/* ---------- 2. Dấu bưu điện "đã đến tay" ----------
+   Vòng mực đè lên con tem, lệch về góc dưới bên trái, ba vạch sóng vắt qua góc trên tem.
+   Cả dấu nằm gọn trong khoảng trống bên phải tiêu đề (tiêu đề chừa sẵn 1.7em cho con tem)
+   và phía trên lời thư, nên không che chữ nào dù tên người nhận dài. */
+
+.greeting-play__mark {
+  position: absolute;
+  top: 1.53em;
+  right: 1.06em;
+  width: 3.3em;
+  height: 3.432em;
+  opacity: 0;
+  transform-origin: 47.3% 54.5%;   /* tâm vòng mực */
+  pointer-events: none;
+}
+
+.greeting-play__mark.is-on { opacity: 1; }
+
+/* Đóng dấu "cộp": từ to thu về, hơi lún rồi nảy lại */
+.greeting-play__mark.is-thump {
+  animation: greeting-play-thump .44s cubic-bezier(.3, .7, .3, 1) both;
+}
+
+@keyframes greeting-play-thump {
+  0%   { opacity: 0; transform: scale(1.6); }
+  50%  { opacity: 1; transform: scale(.93); }
+  75%  { opacity: 1; transform: scale(1.04); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+/* Mực hơi trong để vẫn thấy con tem bên dưới. Độ trong đặt ở cả lớp
+   nên chỗ nét chồng lên nhau không bị đậm hơn. */
+.greeting-play__ink {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  color: #5B2A3C;
+}
+
+.greeting-play__ink-lines { opacity: .55; }
+
+/* Lớp chữ đậm hơn vòng mực một chút, và mỗi nét chữ có một viền màu giấy mỏng nằm dưới
+   (paint-order: stroke). Trên nền trắng của tem viền đó không thấy gì; chỗ chữ chạm vào trái
+   tim hồng thì nó tách chữ khỏi màu hồng, nên ngày tháng nhỏ xíu vẫn đọc được. */
+.greeting-play__ink-words { opacity: .74; }
+
+.greeting-play__ink text {
+  font-family: var(--font-head);
+  font-weight: 800;
+  fill: currentColor;
+  stroke: var(--paper);
+  stroke-linejoin: round;
+  paint-order: stroke fill;
+  text-anchor: middle;
+}
+
+.greeting-play__mark-label { font-size: 16.5px; stroke-width: 3.5px; letter-spacing: .3px; }
+.greeting-play__mark-date  { font-size: 26px; stroke-width: 5px; }
+.greeting-play__mark-time  { font-size: 17px; stroke-width: 4px; }
+
+/* Vòng mực loang ra và mấy giọt mực bắn quanh, đúng lúc con dấu chạm giấy.
+   Tâm đặt trùng tâm vòng mực (47.3% 54.5%), cỡ bằng vòng mực (90.2% bề ngang dấu). */
+.greeting-play__mark::before,
+.greeting-play__mark::after {
+  content: "";
+  position: absolute;
+  left: 47.3%;
+  top: 54.5%;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.greeting-play__mark::before {
+  width: 2.98em;
+  height: 2.98em;
+  margin: -1.49em 0 0 -1.49em;
+  border: .09em solid rgba(91, 42, 60, .5);
+  border-radius: 50%;
+}
+
+/* Giọt mực: một chấm nhỏ ở tâm, các bản sao (box-shadow đứng yên, chỉ phóng to và mờ dần)
+   văng ra phía dưới và bên phải, tránh dòng tiêu đề nằm bên trái con dấu */
+.greeting-play__mark::after {
+  width: .2em;
+  height: .2em;
+  margin: -.1em 0 0 -.1em;
+  border-radius: 50%;
+  background: transparent;
+  box-shadow:
+    1.62em .55em 0 0 rgba(91, 42, 60, .65),
+    1.25em 1.2em 0 -.02em rgba(91, 42, 60, .6),
+    .2em 1.72em 0 .01em rgba(91, 42, 60, .6),
+    -1.05em 1.38em 0 -.03em rgba(91, 42, 60, .55),
+    1.7em -.55em 0 -.03em rgba(91, 42, 60, .55);
+}
+
+.greeting-play__mark.is-thump::before {
+  animation: greeting-play-ripple .5s .12s ease-out both;
+}
+
+.greeting-play__mark.is-thump::after {
+  animation: greeting-play-splat .48s .1s ease-out both;
+}
+
+@keyframes greeting-play-ripple {
+  0%   { opacity: .8; transform: scale(1); }
+  100% { opacity: 0;  transform: scale(1.24); }
+}
+
+@keyframes greeting-play-splat {
+  0%   { opacity: 0;  transform: scale(.72); }
+  30%  { opacity: 1; }
+  100% { opacity: 0;  transform: scale(1.1); }
+}
+
+/* ---------- 3. Bong bóng lời chào ---------- */
+
+/* Vùng gấu luôn đủ cao cho bong bóng hai dòng và một bạn gấu nhìn rõ mặt. Trang bình thường đã
+   cao hơn mức này nhiều; chỉ khi tên người nhận dài bất thường thì phần lõi mới thu chữ lại chút xíu. */
+.page--greeting .greeting-play__art { min-height: 6em; }
+
+/* Câu chào dài làm bong bóng rộng ra, chạm tới ngôi sao trang trí bên cạnh:
+   cho gấu và bong bóng nằm trên để sao không đè lên chữ */
+.greeting-play__pet { z-index: 1; }
+
+/* Câu hai dòng thì chia đều, không để một chữ rơi lẻ xuống dòng dưới */
+.greeting-play__bubble { text-wrap: balance; }
+
+/* Câu chào dài (tên người nhận dài) thì chữ nhỏ lại một chút, nhường chỗ cho gấu */
+.greeting-play__bubble--long {
+  font-size: .88em;
+  line-height: 1.22;
+}
+
+/* ---------- 4. Gấu ngủ gật ban đêm ----------
+   Mũ ngủ, mắt nhắm và chữ z được vẽ thêm vào khuôn gấu dùng chung nên mặc định ẩn ở mọi trang.
+   Chỉ bạn gấu ở trang lời chào, khi trang mang class greeting-play--night, mới đổi dáng. */
+
+.m-greeting-play-cap,
+.m-greeting-play-sleep,
+.m-greeting-play-zz { display: none; }
+
+.page--greeting.greeting-play--night .m-greeting-play-cap,
+.page--greeting.greeting-play--night .m-greeting-play-sleep,
+.page--greeting.greeting-play--night .m-greeting-play-zz { display: block; }
+
+.page--greeting.greeting-play--night .m-cap { display: none; }
+
+.page--greeting.greeting-play--night .m-eye,
+.page--greeting.greeting-play--night .m-eye-happy { opacity: 0; }
+
+/* Ngủ thì tay thôi vẫy, người phập phồng chậm rãi thay cho nhún nhảy */
+.page--greeting.greeting-play--night .mascot--wave .m-arm-r { animation: none; }
+
+.page--greeting.greeting-play--night .pet .mascot-slot {
+  animation: greeting-play-breathe 3.6s ease-in-out infinite;
+}
+
+@keyframes greeting-play-breathe {
+  0%, 100% { transform: scale(1, 1); }
+  50%      { transform: scale(1.025, .972); }
+}
+
+.page--greeting.greeting-play--night .m-greeting-play-cap {
+  transform-origin: 100px 62px;
+  animation: greeting-play-nod 3.6s ease-in-out infinite;
+}
+
+@keyframes greeting-play-nod {
+  0%, 100% { transform: rotate(0deg); }
+  50%      { transform: rotate(-2.5deg); }
+}
+
+/* Ba chữ z nối nhau bay lên. Đứng yên (giảm chuyển động) thì vẫn là ba chữ z xếp bậc thang. */
+.m-greeting-play-z {
+  transform-box: fill-box;
+  transform-origin: 50% 50%;
+}
+
+.page--greeting.greeting-play--night .m-greeting-play-z {
+  animation: greeting-play-zz 2.7s ease-in-out infinite;
+}
+
+.page--greeting.greeting-play--night .m-greeting-play-z--2 { animation-delay: -1.8s; }
+.page--greeting.greeting-play--night .m-greeting-play-z--3 { animation-delay: -.9s; }
+
+@keyframes greeting-play-zz {
+  0%   { opacity: 0; transform: translate(-5px, 7px) scale(.6); }
+  25%  { opacity: 1; }
+  70%  { opacity: 1; }
+  100% { opacity: 0; transform: translate(5px, -8px) scale(1.1); }
+}

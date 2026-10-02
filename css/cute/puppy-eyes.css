@@ -1,0 +1,264 @@
+/* =====================================================================
+   puppy-eyes.css - bạn gấu cử nhân mếu dần khi nút "Để nghĩ đã…" bị bấm
+
+   Mức buồn nằm ở MỘT class trên trang: .page--rsvp.puppy-eyes--1 ... --4
+   (js/cute/puppy-eyes.js gắn vào). Mọi thứ còn lại là CSS, nên bản sao của
+   trang lúc đang lật vẫn hiện đúng.
+
+   Các nét mặt buồn (class m-puppy-eyes-*) được thêm vào khuôn gấu, tức là
+   con gấu nào trong sách cũng có. Vì vậy:
+   - mặc định ẩn hết (display: none);
+   - chỉ đôi gấu ở trang lời mời cuối mới được hiện, và chỉ khi CHƯA nhận lời.
+   Chỉ dùng transform và opacity để chuyển động.
+   ===================================================================== */
+
+/* ---------- Mặc định: không con gấu nào có nét buồn ---------- */
+
+.m-puppy-eyes-face,
+.m-puppy-eyes-tears { display: none; }
+
+/* Riêng đôi gấu ở trang lời mời cuối: bày sẵn (còn trong suốt) để lúc buồn
+   các nét hiện dần ra chứ không bật cái rụp. Nhận lời rồi thì cất hẳn đi. */
+.page--rsvp:not(.is-yes) .couple .m-puppy-eyes-face,
+.page--rsvp:not(.is-yes) .couple .m-puppy-eyes-tears {
+  display: block;
+  transition: opacity .12s ease;
+}
+
+.m-puppy-eyes-brow,
+.m-puppy-eyes-eye,
+.m-puppy-eyes-frown,
+.m-puppy-eyes-lip,
+.m-puppy-eyes-bead,
+.m-puppy-eyes-drop,
+.m-puppy-eyes-paw { opacity: 0; }
+
+.m-puppy-eyes-brow,
+.m-puppy-eyes-eye,
+.m-puppy-eyes-lid,
+.m-puppy-eyes-shine,
+.m-puppy-eyes-lip,
+.m-puppy-eyes-bead,
+.m-puppy-eyes-wob,
+.m-puppy-eyes-drop {
+  transform-box: fill-box;
+  transform-origin: 50% 50%;
+}
+
+.m-puppy-eyes-brow {
+  transition: opacity .25s ease, transform .5s cubic-bezier(.34, 1.56, .64, 1);
+}
+
+/* Mắt to bắt đầu ở đúng cỡ mắt thường rồi mới "nở" ra */
+.m-puppy-eyes-eye {
+  transform: scale(.62);
+  transition: opacity .15s ease, transform .55s cubic-bezier(.34, 1.56, .64, 1);
+}
+
+.m-puppy-eyes-frown,
+.m-puppy-eyes-lip { transition: opacity .2s ease; }
+
+.m-puppy-eyes-bead {
+  transform-origin: 50% 15%;
+  transform: scale(.2);
+  transition: opacity .25s ease, transform .5s cubic-bezier(.34, 1.56, .64, 1);
+}
+
+.m-puppy-eyes-wob { transform-origin: 50% 15%; }
+
+/* Mắt, miệng có sẵn của gấu cần mờ đi êm ái khi nét buồn thay vào */
+.page--rsvp .couple .m-mouth { transition: opacity .12s ease; }
+
+/* Tai gấu cử nhân: xoay quanh chỗ tai dính vào đầu để cụp xuống */
+.page--rsvp .couple__a .m-ear { transition: transform .6s cubic-bezier(.34, 1.56, .64, 1); }
+.page--rsvp .couple__a .m-ear--l { transform-origin: 61px 84px; }
+.page--rsvp .couple__a .m-ear--r { transform-origin: 139px 84px; }
+
+/* =====================================================================
+   NẤC 1 trở lên: nhíu mày lo lắng, tai cụp
+   ===================================================================== */
+
+.page--rsvp[class*="puppy-eyes--"]:not(.is-yes) .couple__a .m-puppy-eyes-brow { opacity: 1; }
+
+.page--rsvp[class*="puppy-eyes--"]:not(.is-yes) .couple__a .m-puppy-eyes-brow--l { transform: translateY(-1px) rotate(-15deg); }
+.page--rsvp[class*="puppy-eyes--"]:not(.is-yes) .couple__a .m-puppy-eyes-brow--r { transform: translateY(-1px) rotate(15deg); }
+
+.page--rsvp.puppy-eyes--1:not(.is-yes) .couple__a .m-ear--l { transform: rotate(-14deg); }
+.page--rsvp.puppy-eyes--1:not(.is-yes) .couple__a .m-ear--r { transform: rotate(14deg); }
+
+/* =====================================================================
+   NẤC 2 trở lên: mắt long lanh to tròn, miệng mếu. Gấu nâu liếc sang.
+   Lúc được xoa đầu (.is-pet) gấu cười lại trong chốc lát, nên các luật
+   giấu mắt, miệng cũ đều chừa trường hợp đó ra.
+   ===================================================================== */
+
+.page--rsvp[class*="puppy-eyes--"]:not(.puppy-eyes--1):not(.is-yes) .pet:not(.is-pet) .couple .m-eye,
+.page--rsvp[class*="puppy-eyes--"]:not(.puppy-eyes--1):not(.is-yes) .pet:not(.is-pet) .couple__a .m-mouth { opacity: 0; }
+
+.page--rsvp[class*="puppy-eyes--"]:not(.puppy-eyes--1):not(.is-yes) .couple .m-puppy-eyes-eye { opacity: 1; }
+.page--rsvp[class*="puppy-eyes--"]:not(.puppy-eyes--1):not(.is-yes) .couple__a .m-puppy-eyes-eye { transform: scale(1); }
+
+.page--rsvp[class*="puppy-eyes--"]:not(.puppy-eyes--1):not(.is-yes) .couple__a .m-puppy-eyes-brow--l { transform: translateY(-2.5px) rotate(-19deg); }
+.page--rsvp[class*="puppy-eyes--"]:not(.puppy-eyes--1):not(.is-yes) .couple__a .m-puppy-eyes-brow--r { transform: translateY(-2.5px) rotate(19deg); }
+
+.page--rsvp.puppy-eyes--2:not(.is-yes) .couple__a .m-ear--l { transform: rotate(-15deg); }
+.page--rsvp.puppy-eyes--2:not(.is-yes) .couple__a .m-ear--r { transform: rotate(15deg); }
+
+.page--rsvp.puppy-eyes--2:not(.is-yes) .couple__a .m-puppy-eyes-frown { opacity: 1; }
+
+/* Mắt chớp chậm và ánh nước lấp lánh */
+.page--rsvp[class*="puppy-eyes--"]:not(.puppy-eyes--1):not(.is-yes) .couple .m-puppy-eyes-lid {
+  animation: puppy-eyes-blink 5.2s infinite;
+}
+
+.page--rsvp[class*="puppy-eyes--"]:not(.puppy-eyes--1):not(.is-yes) .couple__a .m-puppy-eyes-shine {
+  animation: puppy-eyes-glisten 1.7s ease-in-out infinite;
+}
+
+/* Gấu nâu: mắt giữ cỡ thường nhưng nhích về phía gấu cử nhân, mày nhướn lên */
+.page--rsvp[class*="puppy-eyes--"]:not(.puppy-eyes--1):not(.is-yes) .couple__b .m-puppy-eyes-eye { transform: translateX(-3.2px) scale(.62); }
+.page--rsvp[class*="puppy-eyes--"]:not(.puppy-eyes--1):not(.is-yes) .couple__b .m-puppy-eyes-brow { opacity: 1; }
+.page--rsvp.puppy-eyes--2:not(.is-yes) .couple__b .m-puppy-eyes-brow--l { transform: translate(-3px, -1.5px) rotate(-7deg); }
+.page--rsvp.puppy-eyes--2:not(.is-yes) .couple__b .m-puppy-eyes-brow--r { transform: translate(-3px, .5px) rotate(-4deg); }
+
+/* =====================================================================
+   NẤC 3 trở lên: một giọt nước mắt rưng rưng, môi run run. Gấu nâu lo theo.
+   ===================================================================== */
+
+.page--rsvp.puppy-eyes--3:not(.is-yes) .couple__a .m-puppy-eyes-eye,
+.page--rsvp.puppy-eyes--4:not(.is-yes) .couple__a .m-puppy-eyes-eye { transform: scale(1.05); }
+
+/* Sắp khóc thì má đỏ hơn */
+.page--rsvp.puppy-eyes--3:not(.is-yes) .couple__a .m-cheek,
+.page--rsvp.puppy-eyes--4:not(.is-yes) .couple__a .m-cheek { opacity: 1; }
+
+.page--rsvp.puppy-eyes--3:not(.is-yes) .couple__a .m-ear--l { transform: rotate(-20deg); }
+.page--rsvp.puppy-eyes--3:not(.is-yes) .couple__a .m-ear--r { transform: rotate(20deg); }
+
+.page--rsvp.puppy-eyes--3:not(.is-yes) .couple__a .m-puppy-eyes-lip,
+.page--rsvp.puppy-eyes--4:not(.is-yes) .couple__a .m-puppy-eyes-lip {
+  opacity: 1;
+  animation: puppy-eyes-tremble .22s ease-in-out infinite alternate;
+}
+
+.page--rsvp.puppy-eyes--3:not(.is-yes) .couple__a .m-puppy-eyes-bead--l,
+.page--rsvp.puppy-eyes--4:not(.is-yes) .couple__a .m-puppy-eyes-bead {
+  opacity: 1;
+  transform: scale(1.2);
+}
+
+.page--rsvp.puppy-eyes--3:not(.is-yes) .couple__a .m-puppy-eyes-wob,
+.page--rsvp.puppy-eyes--4:not(.is-yes) .couple__a .m-puppy-eyes-wob {
+  animation: puppy-eyes-wobble 1.3s ease-in-out infinite;
+}
+
+.page--rsvp.puppy-eyes--4:not(.is-yes) .couple__a .m-puppy-eyes-bead--r .m-puppy-eyes-wob { animation-delay: -.6s; }
+
+.page--rsvp.puppy-eyes--3:not(.is-yes) .couple__b .m-puppy-eyes-brow--l,
+.page--rsvp.puppy-eyes--4:not(.is-yes) .couple__b .m-puppy-eyes-brow--l { transform: translate(-3px, -1px) rotate(-15deg); }
+
+.page--rsvp.puppy-eyes--3:not(.is-yes) .couple__b .m-puppy-eyes-brow--r,
+.page--rsvp.puppy-eyes--4:not(.is-yes) .couple__b .m-puppy-eyes-brow--r { transform: translate(-3px, -1px) rotate(15deg); }
+
+/* =====================================================================
+   NẤC 4: nước mắt lăn dài hai bên má. Gấu nâu xích lại, đưa tay dỗ.
+   ===================================================================== */
+
+.page--rsvp.puppy-eyes--4:not(.is-yes) .couple__a .m-ear--l { transform: rotate(-26deg); }
+.page--rsvp.puppy-eyes--4:not(.is-yes) .couple__a .m-ear--r { transform: rotate(26deg); }
+
+/* Mỗi giọt có quãng rơi riêng: --puppy-eyes-from là chỗ bắt đầu (ngay khoé mắt),
+   --puppy-eyes-to là chỗ tan đi, tính từ vị trí vẽ sẵn của giọt đó. */
+.m-puppy-eyes-drop { transform-origin: 50% 0%; }
+.m-puppy-eyes-drop--1, .m-puppy-eyes-drop--3 { --puppy-eyes-from: -11px; --puppy-eyes-to: 38px; }
+.m-puppy-eyes-drop--2, .m-puppy-eyes-drop--4 { --puppy-eyes-from: -29px; --puppy-eyes-to: 20px; }
+
+.page--rsvp.puppy-eyes--4:not(.is-yes) .couple__a .m-puppy-eyes-drop {
+  opacity: 1;
+  animation: puppy-eyes-fall 1.7s cubic-bezier(.45, .05, .8, .6) infinite;
+}
+
+.page--rsvp.puppy-eyes--4:not(.is-yes) .couple__a .m-puppy-eyes-drop--2 { animation-delay: -.85s; }
+.page--rsvp.puppy-eyes--4:not(.is-yes) .couple__a .m-puppy-eyes-drop--3 { animation-delay: -.4s; }
+.page--rsvp.puppy-eyes--4:not(.is-yes) .couple__a .m-puppy-eyes-drop--4 { animation-delay: -1.25s; }
+
+/* Gấu nâu nghiêng đầu xích lại gần (không đụng tới tư thế ôm của .is-yes) */
+.page--rsvp.puppy-eyes--4:not(.is-yes) .couple__b {
+  z-index: 1;
+  transform: translateX(-20%) rotate(-5deg);
+}
+
+/* Tay gấu nâu đưa sang vỗ vỗ. Viết phép dời hình đầy đủ (không dùng transform-origin)
+   vì cánh tay vốn có sẵn một phép xoay trong khuôn gấu. */
+.page--rsvp.puppy-eyes--4:not(.is-yes) .couple__b .m-arm-l,
+.page--rsvp.puppy-eyes--4:not(.is-yes) .couple__b .m-puppy-eyes-paw {
+  transform: translate(36px, 148.6px) rotate(114deg) translate(-50px, -176px);
+  animation: puppy-eyes-pat 1s ease-in-out infinite alternate;
+}
+
+.page--rsvp.puppy-eyes--4:not(.is-yes) .couple__b .m-puppy-eyes-paw { opacity: 1; }
+
+/* =====================================================================
+   Xoa đầu gấu (.is-pet): gấu cười lại một thoáng, nét buồn tạm lánh đi
+   ===================================================================== */
+
+.page--rsvp:not(.is-yes) .pet.is-pet .couple .m-puppy-eyes-face,
+.page--rsvp:not(.is-yes) .pet.is-pet .couple .m-puppy-eyes-tears { opacity: 0; }
+
+/* Gấu rùng mình sụt sịt mỗi lần buồn thêm một nấc (JS gắn class này trong chốc lát) */
+.page--rsvp .pet:not(.is-pet) .couple__a.puppy-eyes-sniff .mascot {
+  animation: puppy-eyes-sniff .7s ease-in-out;
+}
+
+/* ---------- Chuyển động ---------- */
+
+@keyframes puppy-eyes-blink {
+  0%, 88%, 100% { transform: scaleY(1); }
+  92%, 95%      { transform: scaleY(.12); }
+}
+
+@keyframes puppy-eyes-glisten {
+  0%, 100% { transform: translate(0, 0) scale(1); opacity: 1; }
+  50%      { transform: translate(.5px, .4px) scale(.9); opacity: .82; }
+}
+
+@keyframes puppy-eyes-tremble {
+  from { transform: translateX(-.7px) scaleY(.94); }
+  to   { transform: translateX(.7px) scaleY(1.06); }
+}
+
+@keyframes puppy-eyes-wobble {
+  0%, 100% { transform: rotate(-7deg) scale(1, 1); }
+  50%      { transform: rotate(7deg) scale(1.08, 1.1); }
+}
+
+@keyframes puppy-eyes-fall {
+  0%   { transform: translateY(var(--puppy-eyes-from)) scale(.35); opacity: 0; }
+  14%  { transform: translateY(var(--puppy-eyes-from)) scale(1); opacity: 1; }
+  82%  { opacity: 1; }
+  100% { transform: translateY(var(--puppy-eyes-to)) scale(.85); opacity: 0; }
+}
+
+@keyframes puppy-eyes-pat {
+  from { transform: translate(35.1px, 150.9px) rotate(108deg) translate(-50px, -176px); }
+  to   { transform: translate(37.1px, 146.5px) rotate(120deg) translate(-50px, -176px); }
+}
+
+@keyframes puppy-eyes-sniff {
+  0%   { transform: translateY(0) scale(1, 1) rotate(0deg); }
+  18%  { transform: translateY(0) scale(1.06, .93) rotate(0deg); }
+  36%  { transform: translateY(-.12em) scale(.98, 1.03) rotate(-2.5deg); }
+  54%  { transform: translateY(0) scale(1.03, .97) rotate(2.5deg); }
+  72%  { transform: translateY(0) scale(1, 1) rotate(-1.5deg); }
+  100% { transform: translateY(0) scale(1, 1) rotate(0deg); }
+}
+
+/* ---------- Giảm chuyển động: vẫn đủ các nét mặt, nhưng không gì nhúc nhích ----------
+   base CSS đã tắt mọi animation; ở đây tắt nốt các transition có dịch chuyển. */
+
+.reduce-motion .m-puppy-eyes-brow,
+.reduce-motion .m-puppy-eyes-eye,
+.reduce-motion .m-puppy-eyes-bead,
+.reduce-motion .page--rsvp .couple__a .m-ear {
+  transition: none;
+}

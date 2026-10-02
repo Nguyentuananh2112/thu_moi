@@ -1,0 +1,682 @@
+/* =====================================================================
+   star-jar.css - trang "Lọ sao giấy" (js/cute/star-jar.js)
+
+   Lưu ý: trạng thái nằm ở class/thuộc tính (.is-empty, .has-reason,
+   .is-out, data-tone) nên bản sao của trang lúc lật vẫn vẽ đúng.
+   Trạng thái nghỉ của mọi phần tử chính là trạng thái cuối của animation,
+   nhờ vậy tắt chuyển động đi thì mọi thứ vẫn hiện đủ.
+   Chỉ chuyển động bằng transform và opacity.
+   ===================================================================== */
+
+/* Màu trang: tím oải hương pha xanh trời, hơi giống trời đêm mà vẫn hợp cuốn sách */
+.page--star-jar {
+  --tint: #E7E0FF;
+  --accent: #9B7FE0;
+  --accent-soft: #CDBDF5;
+  --accent-ink: #5A3FB0;
+}
+
+/* Màu từng ngôi sao: màu giấy, màu viền, màu nhạt làm nền */
+.page--star-jar [data-tone="pink"]   { --star-jar-fill: var(--pink);   --star-jar-edge: #E8638C; --star-jar-soft: #FFD6E0; }
+.page--star-jar [data-tone="butter"] { --star-jar-fill: var(--butter); --star-jar-edge: #EBB84B; --star-jar-soft: #FFF1C4; }
+.page--star-jar [data-tone="mint"]   { --star-jar-fill: var(--mint);   --star-jar-edge: #62C29B; --star-jar-soft: #DDF5EA; }
+.page--star-jar [data-tone="sky"]    { --star-jar-fill: var(--sky);    --star-jar-edge: #73ADEA; --star-jar-soft: #DCEEFF; }
+.page--star-jar [data-tone="lav"]    { --star-jar-fill: var(--lav);    --star-jar-edge: #A587EC; --star-jar-soft: #EBE1FF; }
+.page--star-jar [data-tone="gold"]   { --star-jar-fill: var(--gold);   --star-jar-edge: #D9952A; --star-jar-soft: #FFE9A8; }
+
+/* ---------- Tiêu đề ---------- */
+
+.star-jar__title {
+  margin-bottom: .3em;
+  text-wrap: balance;
+}
+
+/* Tên người nhận dài thì chữ nhỏ lại (class do JS gắn theo số ký tự) */
+.star-jar__title--md { font-size: 1.36em; }
+.star-jar__title--sm { font-size: 1.12em; }
+.star-jar__title--xs { font-size: 1em; }
+
+/* ---------- Khung chung ---------- */
+
+/* Không đặt min-height: 0 ở đây: khi chữ quá dài, khối này phải "phình" ra
+   để phần tự thu nhỏ chữ của trang nhận ra và thu nhỏ cả trang cho vừa,
+   thay vì dải giấy lấn xuống chỗ số trang. */
+.star-jar {
+  position: relative;
+  flex: 1 1 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.star-jar__stage {
+  position: relative;
+  flex: 1 1 0;
+  min-height: 6.5em;
+}
+
+.star-jar__fit {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ---------- Chiếc lọ (là một nút bấm) ---------- */
+
+.star-jar__jar {
+  position: relative;
+  flex: none;
+  display: block;
+  height: 100%;
+  max-height: 16.5em;
+  aspect-ratio: 160 / 188;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 1.4em;
+  background: none;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: transform .14s ease;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.star-jar__jar:active { transform: scale(.96); }
+
+.star-jar__jar:focus-visible {
+  outline: 3px solid var(--rose);
+  outline-offset: 3px;
+}
+
+/* Bóng đổ dưới đáy lọ. Nằm ngoài hình vẽ để lúc lọ lắc thì bóng vẫn đứng yên. */
+.star-jar__ground {
+  position: absolute;
+  left: 15%;
+  right: 15%;
+  bottom: 1.2%;
+  height: 7%;
+  border-radius: 50%;
+  background: rgba(90, 63, 176, .13);
+}
+
+.star-jar__art {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+  transform-origin: 50% 94%;
+  animation: star-jar-nudge 3.8s ease-in-out infinite;
+}
+
+.star-jar__svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.star-jar__glass { fill: #EEF4FF; opacity: .92; }
+.star-jar__base { fill: #C4D3F8; opacity: .8; }
+.star-jar__sheen { fill: #D2E4FF; opacity: .22; }
+
+.star-jar__glint {
+  fill: none;
+  stroke: #fff;
+  stroke-width: 6.5;
+  stroke-linecap: round;
+  opacity: .92;
+}
+
+.star-jar__glint--soft {
+  stroke-width: 4;
+  opacity: .6;
+}
+
+.star-jar__outline {
+  fill: none;
+  stroke: #A492EA;
+  stroke-width: 3.2;
+  stroke-linejoin: round;
+}
+
+.star-jar__rim {
+  fill: #F4F8FF;
+  stroke: #A492EA;
+  stroke-width: 3;
+}
+
+.star-jar__cork { fill: #DDB187; }
+.star-jar__cork-top { fill: #EFCFA9; }
+
+.star-jar__cork-dot {
+  fill: none;
+  stroke: #C39669;
+  stroke-width: 2.6;
+  stroke-linecap: round;
+}
+
+.star-jar__band { fill: var(--pink); }
+
+.star-jar__string {
+  fill: none;
+  stroke: #E0A93B;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+}
+
+/* Nắp bần bật lên một chút mỗi lần có sao nhảy ra */
+.star-jar__lid { transform-origin: 80px 30px; }
+
+/* ---------- Ngôi sao giấy ---------- */
+
+.star-jar__s-edge {
+  fill: var(--star-jar-edge);
+  stroke: var(--star-jar-edge);
+  stroke-width: 5.4;
+  stroke-linejoin: round;
+}
+
+.star-jar__s-fill {
+  fill: var(--star-jar-fill);
+  stroke: var(--star-jar-fill);
+  stroke-width: 2.6;
+  stroke-linejoin: round;
+}
+
+.star-jar__s-shine { fill: #fff; opacity: .72; }
+
+/* Khuôn mặt nhỏ chỉ có ở ngôi sao vàng */
+.star-jar__s-face { display: none; }
+.page--star-jar [data-tone="gold"] .star-jar__s-face { display: block; }
+
+.star-jar__s-eye { fill: var(--cocoa); }
+.star-jar__s-cheek { fill: var(--pink); opacity: .8; }
+
+.star-jar__s-smile {
+  fill: none;
+  stroke: var(--cocoa);
+  stroke-width: .85;
+  stroke-linecap: round;
+}
+
+.star-jar__star-in {
+  transition: opacity .16s ease, transform .22s ease;
+}
+
+/* Sao đã lấy ra: biến khỏi lọ */
+.star-jar__star.is-out .star-jar__star-in {
+  opacity: 0;
+  transform: translateY(-16px) scale(.4);
+}
+
+/* Lọ trống: hiện mũi tên "gấp lại" bên trong */
+.star-jar__again {
+  color: var(--accent);
+  opacity: 0;
+  transition: opacity .3s ease;
+}
+
+.star-jar.is-empty .star-jar__again {
+  opacity: .8;
+  transition-delay: .35s;
+}
+
+.star-jar.is-empty .star-jar__again-in {
+  animation: star-jar-again 1.9s ease-in-out infinite;
+}
+
+/* ---------- Thẻ đếm treo ở cổ lọ ---------- */
+
+.star-jar__tag {
+  position: absolute;
+  left: 81.9%;
+  top: 36.7%;
+  display: block;
+  padding: .16em .62em .06em 1.08em;
+  border-radius: .4em .65em .65em .4em;
+  background: var(--butter);
+  color: var(--berry);
+  font-family: var(--font-head);
+  font-weight: 700;
+  font-size: .9em;
+  line-height: 1.45;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+  box-shadow: 0 .13em 0 #E7BF58;
+  transform: translate(-.5em, -50%) rotate(11deg);
+  transform-origin: .5em 50%;
+  animation: star-jar-swing 2.9s ease-in-out infinite alternate;
+}
+
+/* Lỗ xỏ dây */
+.star-jar__tag::before {
+  content: "";
+  position: absolute;
+  left: .32em;
+  top: 50%;
+  width: .38em;
+  height: .38em;
+  margin-top: -.19em;
+  border-radius: 50%;
+  background: var(--paper);
+  box-shadow: 0 0 0 .09em #E0A93B;
+}
+
+.star-jar__count { display: block; }
+
+.star-jar.is-none .star-jar__tag { display: none; }
+.star-jar.is-none .star-jar__string { display: none; }
+
+/* ---------- Trang trí quanh lọ ---------- */
+
+.star-jar__moon {
+  position: absolute;
+  top: 5%;
+  left: 3%;
+  width: 2.2em;
+  height: 2.2em;
+  color: var(--accent-soft);
+  pointer-events: none;
+  transform: rotate(-16deg);
+  animation: star-jar-moon 4.2s ease-in-out infinite;
+}
+
+.star-jar__spark--a { top: 9%; right: 7%; left: auto; color: var(--gold); }
+.star-jar__spark--b { bottom: 24%; left: 5%; top: auto; width: 1em; height: 1em; color: var(--accent-soft); }
+.star-jar__spark--c { bottom: 8%; right: 5%; top: auto; left: auto; width: 1.05em; height: 1.05em; color: var(--pink); }
+
+/* ---------- Dòng nhắc dưới lọ ----------
+   Hai câu (lúc còn sao, lúc hết sao) nằm chồng cùng một ô, câu nào không dùng
+   thì ẩn đi nhưng vẫn giữ chỗ, nên đổi câu không làm xô lệch trang. */
+
+.star-jar__hint {
+  flex: none;
+  display: grid;
+  align-items: center;
+  margin: .35em 0 .5em;
+  text-align: center;
+  font-family: var(--font-head);
+  font-weight: 700;
+  font-size: max(13px, .92em);
+  line-height: 1.25;
+  color: var(--accent-ink);
+  text-wrap: balance;
+}
+
+/* Chưa có lý do nào thì không có gì để nhắc: bỏ hẳn dòng nhắc cho lọ rộng chỗ hơn */
+.star-jar.is-none .star-jar__hint { display: none; }
+
+.star-jar__say {
+  grid-area: 1 / 1;
+  margin: 0;
+  visibility: hidden;
+}
+
+.star-jar__say[hidden] { display: none; }
+
+.star-jar:not(.is-empty):not(.is-none) .star-jar__say--tap,
+.star-jar.is-empty .star-jar__say--done { visibility: visible; }
+
+.star-jar__hand {
+  display: inline-block;
+  width: 1.45em;
+  height: 1.45em;
+  margin: -.4em .3em -.3em 0;
+  vertical-align: middle;
+  animation: star-jar-tap 1.3s ease-in-out infinite;
+}
+
+.star-jar__done-text { display: block; }
+
+.star-jar__redo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: .35em;
+  margin-top: .2em;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.star-jar__redo[hidden] { display: none; }
+
+.star-jar__redo .ic {
+  width: 1.05em;
+  height: 1.05em;
+  color: var(--accent);
+}
+
+/* ---------- Dải giấy ghi lý do ---------- */
+
+.star-jar__slot {
+  position: relative;
+  flex: none;
+  display: grid;
+  margin: 0 .1em .35em;
+}
+
+/* Chỗ đặt dải giấy: khung nét đứt luôn nằm sẵn bên dưới */
+.star-jar__slot::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border: 2px dashed var(--accent-soft);
+  border-radius: 1em;
+  pointer-events: none;
+}
+
+/* Giấy đã nằm lên thì khung nét đứt lặn đi (chờ sao đáp xong mới lặn) */
+.star-jar.has-reason .star-jar__slot::before {
+  opacity: 0;
+  transition: opacity .2s ease .55s;
+}
+
+.star-jar__wait,
+.star-jar__paper { grid-area: 1 / 1; }
+
+.star-jar__wait {
+  align-self: center;
+  margin: 0;
+  padding: .4em 1em;
+  text-align: center;
+  font-family: var(--font-hand);
+  font-size: max(13px, .95em);
+  line-height: 1.45;
+  color: var(--muted);
+  visibility: hidden;
+}
+
+.star-jar:not(.has-reason) .star-jar__wait { visibility: visible; }
+
+.star-jar__paper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: .6em;
+  min-width: 0;
+  padding: .5em 1.05em .5em .6em;
+  transform: rotate(-1.2deg);
+  visibility: hidden;
+}
+
+.star-jar.has-reason .star-jar__paper { visibility: visible; }
+
+/* Tờ giấy trắng: lớp nền riêng để lúc "mở cuộn" chỉ nền giãn ra, chữ không bị bóp méo */
+.star-jar__sheet {
+  position: absolute;
+  inset: 0;
+  border-radius: 1em;
+  background: #fff;
+  box-shadow: inset 0 0 0 2px var(--star-jar-fill), 0 .22em 0 var(--star-jar-edge);
+  transform-origin: 1.75em 50%;
+}
+
+.page--star-jar [data-tone="gold"] .star-jar__sheet {
+  background: #FFFAEA;
+  box-shadow: inset 0 0 0 2px var(--gold), 0 .22em 0 var(--star-jar-edge);
+}
+
+/* Đầu giấy còn cuộn lại ở mép phải, chạy theo mép giấy khi mở */
+.star-jar__track {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.star-jar__roll {
+  position: absolute;
+  top: -.1em;
+  bottom: -.14em;
+  right: -.32em;
+  width: .78em;
+  border-radius: .39em;
+  background: var(--star-jar-soft);
+  box-shadow: inset 0 0 0 .1em var(--star-jar-edge);
+}
+
+.star-jar__badge {
+  position: relative;
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 2.3em;
+  height: 2.3em;
+  border-radius: 50%;
+  background: var(--star-jar-soft);
+}
+
+.star-jar__mini {
+  display: block;
+  width: 1.95em;
+  height: 1.95em;
+  overflow: visible;
+}
+
+.star-jar__words {
+  position: relative;
+  flex: 1 1 0;
+  min-width: 0;
+  display: grid;
+  align-items: center;
+  min-height: 4.15em;   /* giữ chỗ đủ ba dòng chữ */
+}
+
+.star-jar__ghost,
+.star-jar__reason {
+  grid-area: 1 / 1;
+  min-width: 0;
+  margin: 0;
+  font-family: var(--font-hand);
+  line-height: 1.45;
+  color: var(--cocoa);
+  overflow-wrap: anywhere;
+}
+
+.star-jar__ghost { visibility: hidden; }
+
+/* Trang tự thu nhỏ chữ khi nội dung dài. Lý do và lời nhắc là chữ để đọc nên
+   không bao giờ nhỏ hơn 13px; phần nhường chỗ là chiếc lọ (nó co giãn được). */
+.star-jar__ghost,
+.star-jar__reason { font-size: max(13px, .95em); }
+
+/* ----- Kiểu "chữ rộng" cho lý do dài (JS gắn .star-jar--long) -----
+   Ngôi sao thành nhãn dán ở góc trên bên trái, chữ được trọn bề ngang dải giấy. */
+.star-jar--long .star-jar__paper {
+  display: block;
+  padding: .55em 1.05em .5em 1.15em;
+}
+
+.star-jar--long .star-jar__badge {
+  position: absolute;
+  z-index: 1;
+  left: -.55em;
+  top: -.7em;
+  width: 1.85em;
+  height: 1.85em;
+  box-shadow: 0 0 0 .14em var(--paper);
+}
+
+.star-jar--long .star-jar__mini {
+  width: 1.55em;
+  height: 1.55em;
+}
+
+.star-jar--long .star-jar__sheet { transform-origin: 0 50%; }
+
+.star-jar--long .star-jar__ghost,
+.star-jar--long .star-jar__reason { line-height: 1.4; }
+
+/* Lấp lánh quanh dải giấy vàng */
+.star-jar__twinkle {
+  position: absolute;
+  display: none;
+  width: 1.15em;
+  height: 1.15em;
+  color: var(--gold);
+  pointer-events: none;
+}
+
+.star-jar__twinkle--a { top: -.5em; left: 1.7em; }
+.star-jar__twinkle--b { bottom: -.45em; right: 1.3em; width: .9em; height: .9em; }
+
+.page--star-jar [data-tone="gold"] .star-jar__twinkle {
+  display: block;
+  animation: star-jar-twinkle 1.7s ease-in-out infinite;
+}
+
+.page--star-jar [data-tone="gold"] .star-jar__twinkle--b { animation-delay: -.8s; }
+
+/* ---------- Ngôi sao đang bay (phần tử tạm, JS điều khiển) ----------
+   Mặc định trong suốt: nếu trang bị nhân bản đúng lúc sao đang bay thì bản sao không hiện gì. */
+
+.star-jar__fly {
+  position: absolute;
+  z-index: 5;
+  top: 0;
+  left: 0;
+  display: block;
+  width: 2em;
+  height: 2em;
+  margin: -1em 0 0 -1em;
+  opacity: 0;
+  pointer-events: none;
+  will-change: transform;
+}
+
+.star-jar__fly .star-jar__mini {
+  width: 100%;
+  height: 100%;
+}
+
+/* ---------- Chuyển động ---------- */
+
+/* Lọ thỉnh thoảng rung nhẹ để mời chạm */
+@keyframes star-jar-nudge {
+  0%, 64%, 100% { transform: rotate(0deg); }
+  72%           { transform: rotate(-3.2deg); }
+  81%           { transform: rotate(2.6deg); }
+  90%           { transform: rotate(-1.2deg); }
+}
+
+/* Chạm vào: lọ lắc */
+.star-jar__art.is-shake { animation: star-jar-shake .5s ease-in-out; }
+
+@keyframes star-jar-shake {
+  0%, 100% { transform: rotate(0deg) scale(1, 1); }
+  16%      { transform: rotate(-7deg) scale(1.04, .96); }
+  38%      { transform: rotate(6deg) scale(.98, 1.03); }
+  60%      { transform: rotate(-4deg) scale(1, 1); }
+  80%      { transform: rotate(2deg) scale(1, 1); }
+}
+
+.star-jar__art.is-shake .star-jar__lid,
+.star-jar__art.is-refill .star-jar__lid { animation: star-jar-lid .5s ease-out; }
+
+@keyframes star-jar-lid {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  22%      { transform: translateY(-12px) rotate(-13deg); }
+  50%      { transform: translateY(-5px) rotate(7deg); }
+  76%      { transform: translateY(0) rotate(-2deg); }
+}
+
+/* Gấp sao lại: từng ngôi rơi vào lọ, ngôi dưới đáy rơi trước */
+.star-jar__art.is-refill .star-jar__star-in {
+  animation: star-jar-drop .5s cubic-bezier(.3, .7, .4, 1) var(--d, 0ms) backwards;
+}
+
+@keyframes star-jar-drop {
+  0%   { opacity: 0; transform: translateY(-58px) scale(.8); }
+  35%  { opacity: 1; }
+  60%  { opacity: 1; transform: translateY(0) scale(1.1, .88); }
+  80%  { opacity: 1; transform: translateY(-6px) scale(.98, 1.03); }
+  100% { opacity: 1; transform: translateY(0) scale(1, 1); }
+}
+
+@keyframes star-jar-again {
+  0%, 100% { transform: scale(1) rotate(0deg); }
+  50%      { transform: scale(1.14) rotate(-14deg); }
+}
+
+@keyframes star-jar-swing {
+  from { transform: translate(-.5em, -50%) rotate(13deg); }
+  to   { transform: translate(-.5em, -50%) rotate(5deg); }
+}
+
+.star-jar__tag.is-pop { animation: star-jar-tag .4s ease-out; }
+
+@keyframes star-jar-tag {
+  0%, 100% { transform: translate(-.5em, -50%) rotate(11deg) scale(1); }
+  35%      { transform: translate(-.5em, -50%) rotate(-10deg) scale(1.16); }
+  70%      { transform: translate(-.5em, -50%) rotate(17deg) scale(1); }
+}
+
+@keyframes star-jar-moon {
+  0%, 100% { transform: rotate(-16deg) translateY(0); }
+  50%      { transform: rotate(-6deg) translateY(-.2em); }
+}
+
+@keyframes star-jar-tap {
+  0%, 100% { transform: translateY(.1em) rotate(-8deg); }
+  50%      { transform: translateY(-.22em) rotate(-8deg); }
+}
+
+@keyframes star-jar-twinkle {
+  0%, 100% { transform: scale(.55) rotate(0deg); opacity: .4; }
+  50%      { transform: scale(1.1) rotate(18deg); opacity: 1; }
+}
+
+/* Dải giấy mở cuộn. Trong lúc chờ ngôi sao bay tới (animation-delay), các phần
+   đứng yên ở khung hình đầu (ẩn), nên chữ mới chỉ lộ ra khi sao đã đáp xuống. */
+.star-jar__paper.is-unroll .star-jar__sheet {
+  animation: star-jar-unroll .42s cubic-bezier(.34, 1.4, .64, 1) .46s backwards;
+}
+
+.star-jar__paper.is-unroll .star-jar__track {
+  animation: star-jar-roll .42s cubic-bezier(.34, 1.4, .64, 1) .46s backwards;
+}
+
+.star-jar__paper.is-unroll .star-jar__badge {
+  animation: star-jar-land .38s cubic-bezier(.34, 1.56, .64, 1) .46s backwards;
+}
+
+.star-jar__paper.is-unroll .star-jar__reason {
+  animation: star-jar-ink .32s ease .68s backwards;
+}
+
+.page--star-jar .star-jar__paper.is-unroll .star-jar__twinkle {
+  animation: star-jar-ink .3s ease .8s backwards;
+}
+
+@keyframes star-jar-unroll {
+  0%   { transform: scaleX(.12); opacity: 0; }
+  30%  { opacity: 1; }
+  100% { transform: scaleX(1); opacity: 1; }
+}
+
+@keyframes star-jar-roll {
+  0%   { transform: translateX(calc((1.75em - 100%) * .88)); opacity: 0; }
+  30%  { opacity: 1; }
+  100% { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes star-jar-land {
+  from { transform: scale(.3); opacity: 0; }
+  to   { transform: scale(1); opacity: 1; }
+}
+
+@keyframes star-jar-ink {
+  from { transform: translateX(-.4em); opacity: 0; }
+  to   { transform: translateX(0); opacity: 1; }
+}
+
+/* ---------- Giảm chuyển động ----------
+   animations.css đã tắt mọi animation; ở đây tắt nốt các transition của riêng trang này. */
+
+.reduce-motion .star-jar__jar,
+.reduce-motion .star-jar__star-in,
+.reduce-motion .star-jar__again,
+.reduce-motion .star-jar.has-reason .star-jar__slot::before {
+  transition: none;
+}
